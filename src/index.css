@@ -1,0 +1,147 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  html {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    background-color: #F8FAFC;
+    color: #0F172A;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 600;
+    background-color: #F8FAFC;
+    color: #0F172A;
+    line-height: 1.45;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, strong, b, th, button {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 700;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ==========================================================================
+   60FPS SMOOTH SVG ASTRONAUT EMOTION & MICRO-EXPRESSION ANIMATIONS
+   ========================================================================== */
+@keyframes astroFloatBreathe {
+  0%, 100% {
+    transform: translateY(-2.2px) scaleY(1.004);
+  }
+  50% {
+    transform: translateY(2.2px) scaleY(0.996);
+  }
+}
+
+@keyframes astroHairSwayLeft {
+  0%, 100% {
+    transform: rotate(-1.8deg);
+  }
+  50% {
+    transform: rotate(2.2deg);
+  }
+}
+
+@keyframes astroHairSwayRight {
+  0%, 100% {
+    transform: rotate(1.8deg);
+  }
+  50% {
+    transform: rotate(-2.2deg);
+  }
+}
+
+@keyframes astroTasselSwing {
+  0%, 100% {
+    transform: rotate(-3.5deg);
+  }
+  50% {
+    transform: rotate(3.5deg);
+  }
+}
+
+@keyframes astroWaveHand {
+  0%, 100% {
+    transform: rotate(-5.5deg);
+  }
+  50% {
+    transform: rotate(6.5deg);
+  }
+}
+
+@keyframes astroBadgeFloat {
+  0%, 100% {
+    transform: translateY(-2.5px) scale(1);
+  }
+  50% {
+    transform: translateY(2.5px) scale(1.04);
+  }
+}
+
+@keyframes astroNaturalBlink {
+  0%, 92%, 100% {
+    transform: scaleY(1);
+  }
+  96% {
+    transform: scaleY(0.08);
+  }
+}
+
+.astro-rig-breathe {
+  animation: astroFloatBreathe 3.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  transform-origin: 150px 220px;
+}
+
+.astro-hair-left {
+  animation: astroHairSwayLeft 3.8s ease-in-out infinite;
+  transform-origin: 80px 135px;
+}
+
+.astro-hair-right {
+  animation: astroHairSwayRight 3.8s ease-in-out infinite;
+  transform-origin: 190px 135px;
+}
+
+.astro-tassel-sway {
+  animation: astroTasselSwing 2.8s ease-in-out infinite;
+  transform-origin: 0px 8px;
+}
+
+.astro-wave-motion {
+  animation: astroWaveHand 1.4s ease-in-out infinite;
+  transform-origin: 180px 152px;
+}
+
+.astro-badge-bob {
+  animation: astroBadgeFloat 2.4s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.astro-eye-blink {
+  animation: astroNaturalBlink 4.4s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.astro-smooth-part {
+  transition:
+    transform 0.52s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+    d 0.48s cubic-bezier(0.22, 1, 0.36, 1);
+}

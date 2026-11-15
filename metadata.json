@@ -1,0 +1,6 @@
+{
+  "name": "Aegis Astronaut Watch OS",
+  "description": "Offline-first astronaut smartwatch OS with 21 spaceflight health apps, NASA HRP & CSA metrics, isolated visitor database, and commander monitoring dashboard.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
