@@ -9,16 +9,13 @@ import {
   ChevronUp,
   Copy,
   Heart,
-  MapPin,
   Mic,
   Moon,
   Plus,
-  Radio,
   RotateCcw,
   Search,
   Send,
   ShieldAlert,
-  ShieldCheck,
   Sparkles,
   ThumbsDown,
   ThumbsUp,
@@ -242,18 +239,19 @@ export const CommanderDashboardView: React.FC<CommanderDashboardViewProps> = ({
   const safeCount = crew.filter((m) => evaluateCrewMemberStatus(m).status === 'nominal').length;
   const warnCount = crew.filter((m) => evaluateCrewMemberStatus(m).status === 'warning').length;
   const critCount = crew.filter((m) => evaluateCrewMemberStatus(m).status === 'critical').length;
-  const avgHeart = Math.round(crew.reduce((s, m) => s + m.vitals.heartRate, 0) / crew.length);
+  const crewCountSafe = Math.max(1, crew.length);
+  const avgHeart = Math.round(crew.reduce((s, m) => s + m.vitals.heartRate, 0) / crewCountSafe);
   const avgSpo2 = Number(
-    (crew.reduce((s, m) => s + m.vitals.spo2, 0) / crew.length).toFixed(1)
+    (crew.reduce((s, m) => s + m.vitals.spo2, 0) / crewCountSafe).toFixed(1)
   );
-  const avgSleep = Math.round(crew.reduce((s, m) => s + m.vitals.sleepScore, 0) / crew.length);
+  const avgSleep = Math.round(crew.reduce((s, m) => s + m.vitals.sleepScore, 0) / crewCountSafe);
   const avgBone = Number(
-    (crew.reduce((s, m) => s + m.vitals.boneMass, 0) / crew.length).toFixed(2)
+    (crew.reduce((s, m) => s + m.vitals.boneMass, 0) / crewCountSafe).toFixed(2)
   );
   const avgRad = Number(
-    (crew.reduce((s, m) => s + m.vitals.radiationRate, 0) / crew.length).toFixed(1)
+    (crew.reduce((s, m) => s + m.vitals.radiationRate, 0) / crewCountSafe).toFixed(1)
   );
-  const maxCo2 = Number(Math.max(...crew.map((m) => m.vitals.cabinCo2)).toFixed(2));
+  const maxCo2 = crew.length > 0 ? Number(Math.max(...crew.map((m) => m.vitals.cabinCo2)).toFixed(2)) : 0;
   const heavyWorkCount = crew.filter((m) => analyzeCrewFactors(m).highWork).length;
   const isolationCount = crew.filter((m) => analyzeCrewFactors(m).isolationSignal).length;
 
@@ -299,26 +297,26 @@ export const CommanderDashboardView: React.FC<CommanderDashboardViewProps> = ({
     {
       id: 'crew',
       label: 'Crew Overview',
-      subtitle: 'Live health cards and simple action tips for every astronaut.',
+      subtitle: 'Live health and simple tips.',
       icon: Users,
       badge: crew.length,
     },
     {
       id: 'analytics',
       label: 'Fleet Analytics',
-      subtitle: 'Team health charts, heart rates, bone strength, and air safety.',
+      subtitle: 'Team health and safety charts.',
       icon: BarChart3,
     },
     {
       id: 'ai',
       label: 'AI Commander',
-      subtitle: 'Ask simple questions about crew health or rescue steps.',
+      subtitle: 'Ask questions about crew health.',
       icon: Sparkles,
     },
     {
       id: 'emergencies',
       label: 'Emergency Alerts',
-      subtitle: 'First-hand emergency alerts and active rescue actions.',
+      subtitle: 'Active alerts and rescue actions.',
       icon: ShieldAlert,
       badge: emergencies.length,
     },
@@ -343,12 +341,9 @@ export const CommanderDashboardView: React.FC<CommanderDashboardViewProps> = ({
         >
           <div className="bg-white rounded-3xl border-4 border-red-600 shadow-2xl max-w-lg w-full p-6 sm:p-8 space-y-5 text-slate-900">
             <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-600 text-white text-xs font-black uppercase">
+              <span className="inline-flex items-center gap-2 text-xs font-black uppercase text-red-700">
                 <AlertTriangle className="w-4 h-4 shrink-0" />
                 FIRST-HAND EMERGENCY ALERT
-              </span>
-              <span className="font-mono text-xs font-bold text-slate-500">
-                {unacknowledgedEmergency.location}
               </span>
             </div>
 
@@ -378,81 +373,37 @@ export const CommanderDashboardView: React.FC<CommanderDashboardViewProps> = ({
         </div>
       )}
 
-      {/* 1. MODERN MISSION TELEMETRY HERO HEADER */}
+      {/* 1. BRIGHT AEGIS BOARD HEADER */}
       <section
         aria-label="Aegis Board Header"
-        className="relative rounded-[28px] sm:rounded-[34px] bg-gradient-to-br from-[#07152E] via-[#0D2147] to-[#112A58] text-white shadow-lg overflow-hidden p-6 sm:p-9"
+        className="relative rounded-[28px] sm:rounded-[34px] bg-white border border-slate-200 shadow-sm overflow-hidden min-h-[240px] sm:min-h-[270px] flex items-center"
       >
         <img
           src="/images/peer_mesh.jpg"
-          alt="Aegis Crew Telemetry Mesh"
-          className="absolute right-0 top-0 h-full w-full sm:w-[48%] object-cover opacity-20 mix-blend-screen pointer-events-none select-none"
+          alt="Aegis Board crew telemetry mesh"
+          className="pointer-events-none select-none absolute inset-y-0 right-0 w-full sm:w-[68%] h-full object-cover object-center opacity-85"
         />
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-r from-[#07152E] via-[#07152E]/90 to-transparent pointer-events-none"
+          className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white via-white/95 sm:via-white/80 to-white/10"
         />
 
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="max-w-2xl space-y-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-400/15 border border-cyan-400/30 text-cyan-200 text-xs font-extrabold">
-                <Radio className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Mission Command Telemetry Dashboard</span>
-              </div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-400/15 border border-emerald-400/30 text-emerald-200 text-xs font-extrabold">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>20m+ Signal Delay Resilient · Watch Autonomous</span>
-              </div>
-            </div>
+        <div className="relative z-10 w-full px-6 py-8 sm:px-10 sm:py-10 max-w-2xl space-y-4">
+          <h1
+            aria-label="Aegis Board"
+            className="flex flex-wrap items-center gap-3 sm:gap-4 text-3xl sm:text-5xl font-extrabold tracking-tight text-[#07152E]"
+          >
+            <AegisWordmarkSvg height={53} className="h-10 sm:h-[53px] w-auto" />
+            <span>Board</span>
+          </h1>
 
-            <h1
-              aria-label="Aegis Board"
-              className="flex flex-wrap items-center gap-3 text-3xl sm:text-5xl font-extrabold tracking-tight text-white"
-            >
-              <span className="inline-flex items-center bg-white rounded-2xl px-3 py-1.5 shadow-sm">
-                <AegisWordmarkSvg height={40} className="h-8 sm:h-10 w-auto" />
-              </span>
-              <span>Board</span>
-            </h1>
-
-            <p className="text-sm sm:text-base font-medium text-slate-200 leading-relaxed">
-              Monitor all 10 crewmates live, review fleet health charts, and act on first-hand emergency alerts right away.
+          <div className="space-y-2.5 text-sm sm:text-base font-medium leading-relaxed text-slate-700">
+            <p>
+              Monitor <strong className="font-bold text-[#07152E]">crew health live</strong> when watches sync.
             </p>
-          </div>
-
-          {/* Live Telemetry Summary Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-3 shrink-0">
-            <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 px-4 py-3">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                Safe Crew
-              </div>
-              <div className="text-2xl font-black text-white mt-0.5">
-                {safeCount}/{crew.length}
-              </div>
-            </div>
-            <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 px-4 py-3">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-amber-400" />
-                Check Soon
-              </div>
-              <div className="text-2xl font-black text-white mt-0.5">{warnCount}</div>
-            </div>
-            <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 px-4 py-3">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-rose-300 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-rose-500" />
-                Emergencies
-              </div>
-              <div className="text-2xl font-black text-white mt-0.5">{critCount}</div>
-            </div>
-            <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 px-4 py-3">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
-                <Activity className="w-3.5 h-3.5 text-cyan-300" />
-                Avg Heart
-              </div>
-              <div className="text-2xl font-black text-white mt-0.5">{avgHeart} bpm</div>
-            </div>
+            <p>
+              Headquarters gets <strong className="font-bold text-[#07152E]">first-hand emergency alerts</strong> right away.
+            </p>
           </div>
         </div>
       </section>
@@ -465,18 +416,10 @@ export const CommanderDashboardView: React.FC<CommanderDashboardViewProps> = ({
           className="lg:col-span-3 bg-slate-900 text-slate-200 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-800"
         >
           <div className="p-4 sm:p-5 space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
-              <div>
-                <div className="text-sm font-extrabold text-white tracking-tight">
-                  Command Views
-                </div>
-                <div className="text-[11px] font-semibold text-slate-400">
-                  Station Orbit Sync Active
-                </div>
+            <div className="border-b border-slate-800 pb-3.5">
+              <div className="text-sm font-extrabold text-white tracking-tight">
+                Command Views
               </div>
-              <span className="px-2.5 py-1 rounded-xl bg-cyan-500/15 border border-cyan-400/30 text-[11px] font-extrabold text-cyan-300">
-                {crew.length} Crew
-              </span>
             </div>
 
             {/* Navigation Cards */}
@@ -607,27 +550,14 @@ export const CommanderDashboardView: React.FC<CommanderDashboardViewProps> = ({
         <div className="lg:col-span-9 flex flex-col bg-[#F8FAFC]">
           {/* Clean Dashboard Header Bar */}
           <div className="bg-white border-b border-slate-200 px-5 sm:px-7 py-4 space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-extrabold text-[#07152E] flex items-center gap-2">
-                  <activeMeta.icon className="w-5 h-5 text-cyan-600" />
-                  <span>{activeMeta.label}</span>
-                </h2>
-                <p className="text-xs sm:text-sm font-semibold text-slate-500 mt-0.5">
-                  {activeMeta.subtitle}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-extrabold text-emerald-800">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Avg SpO2 {avgSpo2}%</span>
-                </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-extrabold text-slate-700">
-                  <Moon className="w-3.5 h-3.5 text-indigo-500" />
-                  <span>Sleep {avgSleep}/100</span>
-                </span>
-              </div>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-extrabold text-[#07152E] flex items-center gap-2">
+                <activeMeta.icon className="w-5 h-5 text-cyan-600" />
+                <span>{activeMeta.label}</span>
+              </h2>
+              <p className="text-xs sm:text-sm font-semibold text-slate-500 mt-0.5">
+                {activeMeta.subtitle}
+              </p>
             </div>
 
             {/* Clean Pill Switcher */}
@@ -707,12 +637,12 @@ export const CommanderDashboardView: React.FC<CommanderDashboardViewProps> = ({
                         ? 'bg-amber-400'
                         : 'bg-emerald-500';
 
-                    const badgeCls =
+                    const statusTextCls =
                       ev.status === 'critical'
-                        ? 'bg-red-600 text-white'
+                        ? 'text-red-600'
                         : ev.status === 'warning'
-                        ? 'bg-amber-400 text-slate-950'
-                        : 'bg-emerald-500 text-slate-950';
+                        ? 'text-amber-600'
+                        : 'text-emerald-600';
 
                     const statusWord =
                       ev.status === 'critical'
@@ -745,18 +675,12 @@ export const CommanderDashboardView: React.FC<CommanderDashboardViewProps> = ({
                               <AstronautCharacterSvg emotion={pose} size={46} />
                             </div>
                             <div className="min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
+                              <div className="flex items-center gap-2.5 flex-wrap">
                                 <span className="text-base sm:text-lg font-extrabold text-[#07152E]">
                                   {member.name}
                                 </span>
-                                <span
-                                  className={`px-2.5 py-0.5 rounded-full text-xs font-extrabold ${badgeCls}`}
-                                >
+                                <span className={`text-xs font-extrabold ${statusTextCls}`}>
                                   {statusWord}
-                                </span>
-                                <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-500">
-                                  <MapPin className="w-3 h-3" />
-                                  {member.moduleLocation}
                                 </span>
                               </div>
                               <div className="text-xs sm:text-sm font-semibold text-slate-600 truncate mt-0.5">
@@ -766,16 +690,8 @@ export const CommanderDashboardView: React.FC<CommanderDashboardViewProps> = ({
                           </div>
 
                           <div className="flex items-center gap-3 shrink-0">
-                            <div className="hidden sm:flex items-center gap-2 text-xs font-mono font-bold">
-                              <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800">
-                                HR {member.vitals.heartRate}
-                              </span>
-                              <span className="px-2.5 py-1 rounded-lg bg-sky-50 text-sky-800">
-                                SpO2 {member.vitals.spo2}%
-                              </span>
-                              <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800">
-                                BP {member.vitals.systolicBp}/{member.vitals.diastolicBp}
-                              </span>
+                            <div className="hidden sm:block text-xs font-mono font-bold text-slate-600">
+                              HR {member.vitals.heartRate} · SpO2 {member.vitals.spo2}% · BP {member.vitals.systolicBp}/{member.vitals.diastolicBp}
                             </div>
                             {isExpanded ? (
                               <ChevronUp className="w-5 h-5 text-slate-500" />
@@ -868,19 +784,8 @@ export const CommanderDashboardView: React.FC<CommanderDashboardViewProps> = ({
                             {/* 180-Day Trend + Workload vs Loneliness & Zero-G Adaptation Strip */}
                             <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                               <div className="md:col-span-6 rounded-2xl bg-white border border-slate-200 p-3.5 space-y-2">
-                                <div className="flex items-center justify-between text-xs font-extrabold">
-                                  <span className="text-[#07152E]">180-Day Sleep &amp; Mood Trend</span>
-                                  <span
-                                    className={`px-2 py-0.5 rounded-full text-[10px] ${
-                                      factors.earlyWarning
-                                        ? 'bg-amber-100 text-amber-800'
-                                        : 'bg-emerald-100 text-emerald-800'
-                                    }`}
-                                  >
-                                    {factors.earlyWarning
-                                      ? 'Early Drop Spotted'
-                                      : 'Steady 180d Curve'}
-                                  </span>
+                                <div className="text-xs font-extrabold text-[#07152E]">
+                                  180-Day Sleep &amp; Mood Trend
                                 </div>
                                 <svg viewBox="0 0 240 60" className="w-full h-14 overflow-visible">
                                   <polyline
@@ -1158,17 +1063,9 @@ export const CommanderDashboardView: React.FC<CommanderDashboardViewProps> = ({
                 {/* 180-Day Health Trends & Deep-Space Factors Considered */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
                   <div className="lg:col-span-6 rounded-3xl bg-white border border-slate-200 p-5 space-y-3 shadow-xs">
-                    <div className="flex items-center justify-between gap-2">
-                      <h3 className="text-base font-extrabold text-[#07152E]">
-                        180-Day Health Changes Over Time
-                      </h3>
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold">
-                        Early Risk Detection
-                      </span>
-                    </div>
-                    <p className="text-xs font-semibold text-slate-500">
-                      Tracks crew bone strength, mood, and sleep across 6 months in space to spot small drops before emergencies happen.
-                    </p>
+                    <h3 className="text-base font-extrabold text-[#07152E]">
+                      180-Day Health Trend
+                    </h3>
                     <svg viewBox="0 0 360 110" className="w-full h-28">
                       {[25, 55, 85].map((yLine) => (
                         <line
@@ -1238,31 +1135,31 @@ export const CommanderDashboardView: React.FC<CommanderDashboardViewProps> = ({
 
                   <div className="lg:col-span-6 rounded-3xl bg-white border border-slate-200 p-5 space-y-3 shadow-xs">
                     <h3 className="text-base font-extrabold text-[#07152E]">
-                      Space Factors Considered by Aegis
+                      Space Factors
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                       <div className="rounded-2xl bg-slate-50 border border-slate-200 p-3 space-y-1">
-                        <div className="font-extrabold text-[#07152E]">Heavy Work vs. Loneliness</div>
+                        <div className="font-extrabold text-[#07152E]">Work vs. Loneliness</div>
                         <p className="text-slate-600 font-semibold leading-snug">
-                          {heavyWorkCount} heavy physical load · {isolationCount} isolation stress signal(s). Separates body fatigue from mental stress.
+                          {heavyWorkCount} heavy load · {isolationCount} isolation stress.
                         </p>
                       </div>
                       <div className="rounded-2xl bg-slate-50 border border-slate-200 p-3 space-y-1">
-                        <div className="font-extrabold text-[#07152E]">Zero-G &amp; Sleep Cycles</div>
+                        <div className="font-extrabold text-[#07152E]">Zero-G &amp; Sleep</div>
                         <p className="text-slate-600 font-semibold leading-snug">
-                          No day/night cycle and zero-G fluid shift tracked. Auto-adjusts sleep, water (2,400 mL), and ARED workouts.
+                          Balances sleep, 2,400 mL water, and exercise.
                         </p>
                       </div>
                       <div className="rounded-2xl bg-slate-50 border border-slate-200 p-3 space-y-1">
-                        <div className="font-extrabold text-[#07152E]">Live Spaceship Dangers</div>
+                        <div className="font-extrabold text-[#07152E]">Cabin Dangers</div>
                         <p className="text-slate-600 font-semibold leading-snug">
-                          Avg Radiation {avgRad} uSv/h · Max CO2 {maxCo2}% · Avg O2 {avgSpo2}%. Warns crew the second air turns unsafe.
+                          Rad {avgRad} uSv/h · Max CO2 {maxCo2}% · O2 {avgSpo2}%.
                         </p>
                       </div>
                       <div className="rounded-2xl bg-slate-50 border border-slate-200 p-3 space-y-1">
-                        <div className="font-extrabold text-[#07152E]">20m+ Signal Delay Offline AI</div>
+                        <div className="font-extrabold text-[#07152E]">Offline Watch AI</div>
                         <p className="text-slate-600 font-semibold leading-snug">
-                          Runs 100% on-watch medical logic and direct Peer SOS with zero Earth internet needed.
+                          Direct Peer SOS with zero Earth Wi-Fi.
                         </p>
                       </div>
                     </div>
@@ -1384,7 +1281,7 @@ export const CommanderDashboardView: React.FC<CommanderDashboardViewProps> = ({
                               <button
                                 type="button"
                                 onClick={() => {
-                                  navigator.clipboard?.writeText(item.a);
+                                  navigator.clipboard?.writeText(item.a).catch(() => {});
                                   setCopiedIdx(idx);
                                   setTimeout(() => setCopiedIdx(null), 1500);
                                 }}
@@ -1462,30 +1359,14 @@ export const CommanderDashboardView: React.FC<CommanderDashboardViewProps> = ({
                         <div className="flex items-center gap-4">
                           <AstronautCharacterSvg emotion="surprised" size={76} />
                           <div className="space-y-1.5">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-lg font-black text-red-700">
-                                {emg.crewName}
-                              </span>
-                              <span className="px-2.5 py-0.5 rounded-full bg-red-600 text-white text-xs font-black">
-                                {emg.acknowledged ? 'Acknowledged' : 'New Emergency'}
-                              </span>
-                              <span className="font-mono text-xs font-bold text-slate-600">
-                                {emg.location} · {emg.distanceMeters}m away
-                              </span>
+                            <div className="text-lg font-black text-red-700">
+                              {emg.crewName}
                             </div>
                             <div className="text-sm sm:text-base font-extrabold text-slate-900">
                               {emg.headline}
                             </div>
-                            <div className="flex flex-wrap gap-2 text-xs font-mono font-bold text-red-800">
-                              <span className="px-2 py-0.5 rounded-lg bg-white border border-red-200">
-                                BP {emg.bp}
-                              </span>
-                              <span className="px-2 py-0.5 rounded-lg bg-white border border-red-200">
-                                HR {emg.heartRate} bpm
-                              </span>
-                              <span className="px-2 py-0.5 rounded-lg bg-white border border-red-200">
-                                SpO2 {emg.spo2}%
-                              </span>
+                            <div className="text-xs font-mono font-bold text-red-800">
+                              BP {emg.bp} · HR {emg.heartRate} bpm · SpO2 {emg.spo2}%
                             </div>
                             <div className="text-xs sm:text-sm font-semibold text-slate-700">
                               Action: {emg.suggestion}

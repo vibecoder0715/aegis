@@ -362,7 +362,12 @@ export const CalculatorAppView: React.FC = () => {
     if (key === '=') {
       try {
         const clean = expr.replace(/[^0-9+\-*/.%()]/g, '');
-        const result = Function(`"use strict"; return (${clean});`)();
+        if (!clean) {
+          setExpr('0');
+          return;
+        }
+        const normalized = clean.replace(/\b0+(?=\d)/g, '');
+        const result = Function(`"use strict"; return (${normalized});`)();
         setExpr(Number.isFinite(result) ? String(Number(result.toFixed(4))) : 'Err');
       } catch {
         setExpr('Err');
@@ -592,7 +597,7 @@ export const WorkoutAppView: React.FC<EnvToolAppProps> = ({
 
   const finishWorkout = () => {
     setIsRunning(false);
-    const minutes = Math.max(15, Math.round(activeSec / 60) || 25);
+    const minutes = activeSec > 0 ? Math.max(1, Math.round(activeSec / 60)) : 25;
     const stepsAdded = selectedType === 'Indoor Treadmill' ? 2400 : 1200;
     const calories = minutes * 7;
     onUpdateInputs({

@@ -342,49 +342,200 @@ const Game2048: React.FC<{ muted: boolean; onScore: (s: number) => void }> = ({ 
   );
 };
 
-/* ---------------- 2. PIANO TILES ---------------- */
+/* ---------------- 2. PIANO TILES (AUTO-SCROLL 4 -> 11 TILES/SEC) ---------------- */
+interface PianoTileItem {
+  id: number;
+  col: number;
+  y: number;
+  hit: boolean;
+}
+
+const PIANO_PLAYFIELD_H = 168;
+const PIANO_TILE_H = 42;
+const PIANO_MIN_TPS = 4;
+const PIANO_MAX_TPS = 11;
+
+const makeInitialPianoTiles = (nextIdRef: React.MutableRefObject<number>): PianoTileItem[] => {
+  const list: PianoTileItem[] = [];
+  for (let i = 0; i < 6; i++) {
+    list.push({
+      id: nextIdRef.current++,
+      col: Math.floor(Math.random() * 4),
+      y: -10 - i * PIANO_TILE_H,
+      hit: false,
+    });
+  }
+  return list;
+};
+
 const GamePianoTiles: React.FC<{ muted: boolean; onScore: (s: number) => void }> = ({ muted, onScore }) => {
-  const [rows, setRows] = useState<number[]>(() => [0, 2, 1, 3].map(() => Math.floor(Math.random() * 4)));
+  const nextIdRef = useRef(1);
+  const tilesRef = useRef<PianoTileItem[]>(makeInitialPianoTiles(nextIdRef));
+  const scoreRef = useRef(0);
+  const elapsedRef = useRef(0);
+  const gameOverRef = useRef<string | null>(null);
+  const [tiles, setTiles] = useState<PianoTileItem[]>(() => tilesRef.current);
   const [score, setScore] = useState(0);
+  const [tilesPerSec, setTilesPerSec] = useState(PIANO_MIN_TPS);
+  const [gameOver, setGameOver] = useState<string | null>(null);
+  const [flashCol, setFlashCol] = useState<number | null>(null);
   const notes = [261.63, 293.66, 329.63, 392.0];
 
-  const tapCol = (col: number) => {
-    if (rows[3] === col) {
+  const resetGame = () => {
+    const fresh = makeInitialPianoTiles(nextIdRef);
+    tilesRef.current = fresh;
+    scoreRef.current = 0;
+    elapsedRef.current = 0;
+    gameOverRef.current = null;
+    setTiles(fresh);
+    setScore(0);
+    setTilesPerSec(PIANO_MIN_TPS);
+    setGameOver(null);
+    setFlashCol(null);
+  };
+
+  useEffect(() => {
+    let rafId = 0;
+    let lastTs = performance.now();
+
+    const step = (now: number) => {
+      const dt = Math.min(0.05, Math.max(0.001, (now - lastTs) / 1000));
+      lastTs = now;
+
+      if (!gameOverRef.current) {
+        elapsedRef.current += dt;
+        const speed = Math.min(PIANO_MAX_TPS, PIANO_MIN_TPS + elapsedRef.current * 0.25);
+        const dy = speed * PIANO_TILE_H * dt;
+
+        const moved = tilesRef.current
+          .map((tile) => ({ ...tile, y: tile.y + dy }))
+          .filter((tile) => tile.y < PIANO_PLAYFIELD_H + PIANO_TILE_H);
+
+        const missed = moved.some((tile) => !tile.hit && tile.y >= PIANO_PLAYFIELD_H - 4);
+        if (missed) {
+          gameOverRef.current = 'Missed tile!';
+          setTiles(moved);
+          setTilesPerSec(speed);
+          setGameOver('Missed tile!');
+          rafId = requestAnimationFrame(step);
+          return;
+        }
+
+        let topY = moved.reduce((minY, tile) => Math.min(minY, tile.y), PIANO_PLAYFIELD_H);
+        while (topY > -PIANO_TILE_H) {
+          topY -= PIANO_TILE_H;
+          moved.push({
+            id: nextIdRef.current++,
+            col: Math.floor(Math.random() * 4),
+            y: topY,
+            hit: false,
+          });
+        }
+
+        tilesRef.current = moved;
+        setTiles(moved);
+        setTilesPerSec(speed);
+      }
+
+      rafId = requestAnimationFrame(step);
+    };
+
+    rafId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafId);
+  }, []);
+
+  const handleColTap = (col: number) => {
+    if (gameOverRef.current) return;
+    setFlashCol(col);
+    window.setTimeout(() => setFlashCol((c) => (c === col ? null : c)), 110);
+
+    const activeTargets = tilesRef.current
+      .filter((tile) => !tile.hit && tile.y > -PIANO_TILE_H)
+      .sort((a, b) => b.y - a.y);
+
+    const lowest = activeTargets[0];
+    if (!lowest) return;
+
+    if (lowest.col === col) {
       playGameNote(notes[col], muted);
-      const ns = score + 1;
+      tilesRef.current = tilesRef.current.map((tile) =>
+        tile.id === lowest.id ? { ...tile, hit: true } : tile
+      );
+      setTiles(tilesRef.current);
+      const ns = scoreRef.current + 1;
+      scoreRef.current = ns;
       setScore(ns);
       onScore(ns);
-      setRows((prev) => [Math.floor(Math.random() * 4), ...prev.slice(0, 3)]);
     } else {
-      setScore(0);
+      gameOverRef.current = 'Wrong lane!';
+      setGameOver('Wrong lane!');
     }
   };
 
   return (
     <div className="space-y-1.5 text-center">
-      <div className="text-xs font-mono font-bold text-sky-300">Tap glowing tile · Score: {score}</div>
-      <div className="grid grid-cols-4 gap-1 bg-slate-900 p-1.5 rounded-2xl border border-slate-700">
-        {rows.map((blackCol, rIdx) =>
-          [0, 1, 2, 3].map((cIdx) => {
-            const isBlack = blackCol === cIdx;
-            const isBottom = rIdx === 3;
-            return (
-              <button
-                key={`${rIdx}-${cIdx}`}
-                type="button"
-                disabled={!isBottom}
-                onClick={() => tapCol(cIdx)}
-                className={`h-9 rounded-lg cursor-pointer transition ${
-                  isBlack
-                    ? isBottom
-                      ? 'bg-gradient-to-b from-sky-400 to-blue-600 border-2 border-white shadow-[0_0_10px_rgba(56,189,248,0.6)]'
-                      : 'bg-slate-950 border border-slate-700'
-                    : 'bg-slate-800/50'
-                }`}
-                aria-label={`Piano row ${rIdx} col ${cIdx}`}
-              />
-            );
-          })
+      <div className="flex items-center justify-between text-[11px] font-mono font-bold px-1">
+        <span className="text-sky-300">Score: {score}</span>
+        <span className="text-cyan-300">{tilesPerSec.toFixed(1)} tiles/s</span>
+      </div>
+
+      <div
+        className="relative w-full rounded-2xl bg-slate-900 border border-slate-700 overflow-hidden select-none"
+        style={{ height: `${PIANO_PLAYFIELD_H}px` }}
+      >
+        <div className="grid grid-cols-4 h-full relative z-10">
+          {[0, 1, 2, 3].map((col) => (
+            <button
+              key={col}
+              type="button"
+              onPointerDown={() => handleColTap(col)}
+              aria-label={`Piano lane ${col + 1}`}
+              className={`h-full border-r last:border-r-0 border-slate-800/80 cursor-pointer transition-colors ${
+                flashCol === col ? 'bg-sky-500/15' : 'bg-transparent'
+              }`}
+            />
+          ))}
+        </div>
+
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-11 bg-sky-500/10 border-t border-sky-400/25"
+        />
+
+        {tiles.map((tile) => (
+          <div
+            key={tile.id}
+            aria-hidden="true"
+            className="pointer-events-none absolute px-1"
+            style={{
+              left: `${tile.col * 25}%`,
+              width: '25%',
+              top: `${tile.y}px`,
+              height: `${PIANO_TILE_H - 3}px`,
+            }}
+          >
+            <div
+              className={`w-full h-full rounded-lg transition-opacity ${
+                tile.hit
+                  ? 'bg-emerald-400/40 border border-emerald-300/60 opacity-45'
+                  : 'bg-gradient-to-b from-sky-400 to-blue-600 border border-white/80 shadow-[0_0_10px_rgba(56,189,248,0.55)]'
+              }`}
+            />
+          </div>
+        ))}
+
+        {gameOver && (
+          <div className="absolute inset-0 z-20 bg-slate-950/85 flex flex-col items-center justify-center gap-2 p-3">
+            <div className="text-xs font-extrabold text-rose-400">{gameOver}</div>
+            <div className="text-base font-black text-white">Score {score}</div>
+            <button
+              type="button"
+              onClick={resetGame}
+              className="px-3 py-1.5 rounded-full bg-sky-500 hover:bg-sky-400 text-slate-950 text-[11px] font-black cursor-pointer"
+            >
+              Play Again
+            </button>
+          </div>
         )}
       </div>
     </div>

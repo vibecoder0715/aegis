@@ -30,7 +30,7 @@ import {
 type ActiveTab = 'watch' | 'demonstration' | 'commander';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('watch');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('demonstration');
   const [watchDb, setWatchDb] = useState<VisitorWatchDatabase>(() => loadVisitorWatchDb());
   const [togglerState, setTogglerState] = useState<UnifiedTogglerState>(() => ({
     ...createInitialTogglerState(),
@@ -163,8 +163,8 @@ export default function App() {
   };
 
   const NAV_ITEMS: Array<{ id: ActiveTab; label: string; mobileLabel: string; icon: typeof Watch }> = [
+    { id: 'demonstration', label: 'Aegis Demonstration', mobileLabel: 'Demo', icon: PlayCircle },
     { id: 'watch', label: 'Aegis Watch', mobileLabel: 'Watch', icon: Watch },
-    { id: 'demonstration', label: 'Demonstration', mobileLabel: 'Demo', icon: PlayCircle },
     { id: 'commander', label: 'Aegis Board', mobileLabel: 'Board', icon: Users },
   ];
 
@@ -177,7 +177,7 @@ export default function App() {
             href="#top"
             onClick={(e) => {
               e.preventDefault();
-              setActiveTab('watch');
+              setActiveTab('demonstration');
             }}
             className="inline-flex items-center shrink-0"
             aria-label="Aegis Home"
