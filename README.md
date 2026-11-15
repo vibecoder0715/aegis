@@ -5,7 +5,7 @@ Visit Aegis live now! https://aegis-inky.vercel.app
 Aegis is a connected space health system with two core parts — **Aegis Watch** for every astronaut and **Aegis Board** for mission doctors — built with React, TypeScript, and smart AI APIs.
 
 ## 1. Aegis Watch
-![Aegis Watch](public/images/watch_showcase.png)
+![Aegis Watch](public/images/watch_showcase.jpg)
 
 - **Early Warnings & Clear Personal Tips**: Tracks heart rate, blood pressure, blood oxygen, sleep quality, calories, steps, bone strength, radiation, and cabin air, then turns numbers into easy recovery steps.
 - **No-Internet Deep-Space Autonomy**: Keeps working smoothly with offline health intelligence and direct watch-to-watch Peer SOS alerts even during 20+ minute signal delays or zero connection.
@@ -21,6 +21,6 @@ Aegis is a connected space health system with two core parts — **Aegis Watch**
 - **First-Hand Emergency Alerts & AI Commander**: Surfaces static emergency alerts when an astronaut needs help right away and lets mission leaders query crew readiness with clear answers.
 
 ## 3. Demonstration
-![Demonstration](public/images/demonstration_page.png)
+![Demonstration](public/images/demonstration_page.jpg)
 
 Visualizes the functions of Aegis through interactive suit sensor pins, picture story cards, and a real-time 3D Watch-to-Board rescue simulation.
