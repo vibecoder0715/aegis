@@ -109,40 +109,40 @@ export const DemonstrationView: React.FC = () => {
               key={card.step}
               className="rounded-3xl bg-slate-50 border border-slate-200 overflow-hidden flex flex-col shadow-xs"
             >
-              <div className="h-44 bg-slate-900 overflow-hidden">
-                <img
-                  src={card.img}
-                  alt={card.alt}
-                  className={card.imgClass}
-                />
+                <div className="h-44 bg-slate-900 overflow-hidden">
+                  <img
+                    src={card.img}
+                    alt={card.alt}
+                    className={card.imgClass}
+                  />
+                </div>
+                <div className="p-4 space-y-1">
+                  <div className="font-mono text-xs font-extrabold text-cyan-700">{card.step}</div>
+                  <div className="text-lg font-extrabold text-[#07152E]">{card.title}</div>
+                  <p className="text-sm font-semibold text-slate-600 leading-snug">
+                    {card.caption}
+                  </p>
+                </div>
               </div>
-              <div className="p-4 space-y-1">
-                <div className="font-mono text-xs font-extrabold text-cyan-700">{card.step}</div>
-                <div className="text-lg font-extrabold text-[#07152E]">{card.title}</div>
-                <p className="text-sm font-semibold text-slate-600 leading-snug">
-                  {card.caption}
-                </p>
-              </div>
-            </div>
           ))}
-        </div>
+            </div>
 
-        {/* Slide Deck Presentation Callout */}
-        <div className="rounded-3xl bg-slate-50 border border-slate-200 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="text-lg sm:text-xl font-extrabold text-[#07152E]">
-            Wanna know more? Click here!
-          </div>
+        {/* Slide Deck Presentation Callout */ }
+            < div className = "rounded-3xl bg-slate-50 border border-slate-200 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4" >
+              <div className="text-lg sm:text-xl font-extrabold text-[#07152E]">
+                Wanna know more? Click here!
+              </div>
 
-          <a
-            href="https://canva.link/ddh7tcyekbmjkw0"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#00C4CC] to-[#7D2AE8] hover:brightness-110 px-5 py-3.5 text-sm sm:text-base font-extrabold text-white shadow-md transition cursor-pointer shrink-0"
-          >
-            <CanvaIconSvg className="w-5 h-5" />
-            <span>View slide deck</span>
-          </a>
-        </div>
+              <a
+                href="https://canva.link/ddh7tcyekbmjkw0"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#00C4CC] to-[#7D2AE8] hover:brightness-110 px-5 py-3.5 text-sm sm:text-base font-extrabold text-white shadow-md transition cursor-pointer shrink-0"
+              >
+                <CanvaIconSvg className="w-5 h-5" />
+                <span>View slide deck</span>
+              </a>
+            </div>
       </section>
 
       {/* 2. FROM CONCEPT TO THE REAL WORLD: INTERACTIVE SUIT VISUAL */}
@@ -171,15 +171,14 @@ export const DemonstrationView: React.FC = () => {
                   type="button"
                   style={{ top: `${det.topPct}%`, left: `${det.leftPct}%` }}
                   onClick={() => setSelectedDetector(det)}
-                  className={`absolute -translate-x-1/2 -translate-y-1/2 px-3 py-1.5 rounded-xl text-xs font-black shadow-lg cursor-pointer transition transform hover:scale-105 ${
-                    det.isWatch
+                  className={`absolute -translate-x-1/2 -translate-y-1/2 px-3 py-1.5 rounded-xl text-xs font-black shadow-lg cursor-pointer transition transform hover:scale-105 ${det.isWatch
                       ? active
                         ? 'bg-emerald-500 text-slate-950 ring-4 ring-white'
                         : 'bg-[#07152E] text-emerald-300 border border-emerald-400'
                       : active
-                      ? 'bg-cyan-400 text-slate-950 ring-4 ring-white'
-                      : 'bg-[#07152E]/90 text-white border border-cyan-400'
-                  }`}
+                        ? 'bg-cyan-400 text-slate-950 ring-4 ring-white'
+                        : 'bg-[#07152E]/90 text-white border border-cyan-400'
+                    }`}
                 >
                   {det.code}
                 </button>
@@ -204,11 +203,10 @@ export const DemonstrationView: React.FC = () => {
                     key={det.id}
                     type="button"
                     onClick={() => setSelectedDetector(det)}
-                    className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition ${
-                      active
+                    className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between cursor-pointer transition ${active
                         ? 'border-[#07152E] bg-slate-100 font-extrabold'
                         : 'border-slate-200 bg-white hover:bg-slate-50'
-                    }`}
+                      }`}
                   >
                     <div>
                       <div className="text-sm font-extrabold text-[#07152E]">{det.code}</div>
@@ -230,25 +228,25 @@ export const DemonstrationView: React.FC = () => {
         aria-label="How it works in real life?"
         className="rounded-[28px] sm:rounded-[34px] bg-white border border-slate-200 shadow-sm p-6 sm:p-10 space-y-5"
       >
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-[#07152E]">
-          How it works in real life?
-        </h2>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#07152E]">
+            How it works in real life?
+          </h2>
 
-        <div className="rounded-3xl overflow-hidden border border-slate-200 bg-black shadow-lg">
-          <video
-            src="/videos/banner_video.mp4"
-            controls
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="metadata"
-            aria-label="How Aegis works in real life video"
-            className="w-full h-auto max-h-[620px] block object-cover"
-          >
-            Your browser does not support video playback.
-          </video>
-        </div>
+          <div className="rounded-3xl overflow-hidden border border-slate-200 bg-black shadow-lg">
+            <video
+              src="/videos/banner_video.mp4"
+              controls
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              aria-label="How Aegis works in real life video"
+              className="w-full h-auto max-h-[620px] block object-cover"
+            >
+              Your browser does not support video playback.
+            </video>
+          </div>
       </section>
     </div>
   );
