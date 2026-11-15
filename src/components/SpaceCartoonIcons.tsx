@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 export type AstronautPoseId =
   | 'idle'
+  | 'calm'
   | 'happy'
   | 'wink'
   | 'thinking'
@@ -10,7 +11,10 @@ export type AstronautPoseId =
   | 'laughing'
   | 'sleepy'
   | 'cheering'
-  | 'greeting';
+  | 'greeting'
+  | 'sad'
+  | 'angry'
+  | 'worried';
 
 export type AstronautEmotion =
   | AstronautPoseId
@@ -28,74 +32,74 @@ export interface AstronautPoseMeta {
 
 export const ASTRONAUT_10_POSES: AstronautPoseMeta[] = [
   {
-    id: 'idle',
-    number: 1,
-    label: '1. Idle (Breathe)',
-    shortTitle: 'Idle (Breathe)',
-    telemetryTrigger: 'Baseline Suit Telemetry · HR 68 bpm · BP 118/76',
-  },
-  {
     id: 'happy',
-    number: 2,
-    label: '2. Happy',
+    number: 1,
+    label: 'Happy',
     shortTitle: 'Happy',
-    telemetryTrigger: 'All 525 Metrics Optimal · Mood Score 94/100',
+    telemetryTrigger: 'Feeling great today!',
   },
   {
-    id: 'wink',
+    id: 'idle',
+    number: 2,
+    label: 'Calm',
+    shortTitle: 'Calm',
+    telemetryTrigger: 'Steady heart and breath.',
+  },
+  {
+    id: 'worried',
     number: 3,
-    label: '3. Wink',
-    shortTitle: 'Wink',
-    telemetryTrigger: 'EVA Task Complete · Bone Mass Stable 1.18 g/cm²',
+    label: 'Worried',
+    shortTitle: 'Worried',
+    telemetryTrigger: 'Take a slow breath.',
   },
   {
-    id: 'thinking',
+    id: 'sad',
     number: 4,
-    label: '4. Thinking',
-    shortTitle: 'Thinking',
-    telemetryTrigger: 'Evaluating Cloud Sync & Tibial Ultrasonic Scan',
+    label: 'Sad',
+    shortTitle: 'Sad',
+    telemetryTrigger: 'Talk with a friend.',
   },
   {
-    id: 'surprised',
+    id: 'angry',
     number: 5,
-    label: '5. Surprised',
-    shortTitle: 'Surprised',
-    telemetryTrigger: 'Sudden BP Spike (>=140 mmHg) or Suit CO2 Alert',
-  },
-  {
-    id: 'mischievous',
-    number: 6,
-    label: '6. Mischievous',
-    shortTitle: 'Mischievous',
-    telemetryTrigger: 'High Energy Ration & Zero-G Free-Float Mode',
-  },
-  {
-    id: 'laughing',
-    number: 7,
-    label: '7. Laughing',
-    shortTitle: 'Laughing',
-    telemetryTrigger: 'Crew Cohesion High · Social Comms Window',
+    label: 'Angry',
+    shortTitle: 'Angry',
+    telemetryTrigger: 'Drink water and rest.',
   },
   {
     id: 'sleepy',
-    number: 8,
-    label: '8. Sleepy',
+    number: 6,
+    label: 'Sleepy',
     shortTitle: 'Sleepy',
-    telemetryTrigger: 'Circadian Rest Window · Melatonin Cycle Active',
+    telemetryTrigger: 'Time for a good nap.',
+  },
+  {
+    id: 'surprised',
+    number: 7,
+    label: 'Surprised',
+    shortTitle: 'Surprised',
+    telemetryTrigger: 'Check your watch alert!',
   },
   {
     id: 'cheering',
-    number: 9,
-    label: '9. Cheering',
+    number: 8,
+    label: 'Cheering',
     shortTitle: 'Cheering',
-    telemetryTrigger: 'ARED Workout Goal & Countermeasure Complete',
+    telemetryTrigger: 'Workout goal complete!',
+  },
+  {
+    id: 'wink',
+    number: 9,
+    label: 'Wink',
+    shortTitle: 'Wink',
+    telemetryTrigger: 'Great job today!',
   },
   {
     id: 'greeting',
     number: 10,
-    label: '10. Greeting (Wave)',
-    shortTitle: 'Greeting (Wave)',
-    telemetryTrigger: '6.5 GHz UWB Peer-to-Peer Crew Link Connected',
+    label: 'Wave',
+    shortTitle: 'Wave',
+    telemetryTrigger: 'Say hi to your crew!',
   },
 ];
 
@@ -125,10 +129,12 @@ export function normalizeToPoseId(
     return ASTRONAUT_10_POSES[idx].id;
   }
   switch (emotion) {
+    case 'calm':
+      return 'idle';
     case 'alert':
-      return 'surprised';
+      return 'worried';
     case 'radiation':
-      return 'thinking';
+      return 'surprised';
     case 'workout':
       return 'cheering';
     default:
@@ -159,6 +165,26 @@ interface PoseRigTarget {
 
 const POSE_RIG_TABLE: Record<AstronautPoseId, PoseRigTarget> = {
   idle: {
+    headTilt: 0,
+    headY: 0,
+    torsoTilt: 0,
+    blushOpacity: 0.58,
+    browLiftY: 0,
+    browTiltDeg: 0,
+    gazeX: 0,
+    gazeY: 0,
+    openEyeOpacityL: 1,
+    openEyeOpacityR: 1,
+    happyArchOpacityL: 0,
+    happyArchOpacityR: 0,
+    sleepArchOpacity: 0,
+    shockEyeOpacity: 0,
+    smugLidOpacity: 0,
+    mouthPath: 'M 130 116 Q 136 121 142 116 Q 136 119 130 116 Z',
+    tongueOpacity: 0,
+    mischiefTongueOpacity: 0,
+  },
+  calm: {
     headTilt: 0,
     headY: 0,
     torsoTilt: 0,
@@ -356,6 +382,66 @@ const POSE_RIG_TABLE: Record<AstronautPoseId, PoseRigTarget> = {
     smugLidOpacity: 0,
     mouthPath: 'M 125 112 Q 136 113 147 112 Q 147 127 136 127 Q 125 127 125 112 Z',
     tongueOpacity: 1,
+    mischiefTongueOpacity: 0,
+  },
+  sad: {
+    headTilt: -4,
+    headY: 3,
+    torsoTilt: -2,
+    blushOpacity: 0.4,
+    browLiftY: -1,
+    browTiltDeg: -8,
+    gazeX: 0,
+    gazeY: 2.5,
+    openEyeOpacityL: 1,
+    openEyeOpacityR: 1,
+    happyArchOpacityL: 0,
+    happyArchOpacityR: 0,
+    sleepArchOpacity: 0,
+    shockEyeOpacity: 0,
+    smugLidOpacity: 0,
+    mouthPath: 'M 128 122 Q 136 114 144 122 Q 136 117 128 122 Z',
+    tongueOpacity: 0,
+    mischiefTongueOpacity: 0,
+  },
+  angry: {
+    headTilt: 2,
+    headY: 1,
+    torsoTilt: 1,
+    blushOpacity: 0.9,
+    browLiftY: 2.5,
+    browTiltDeg: 12,
+    gazeX: 0,
+    gazeY: 0,
+    openEyeOpacityL: 1,
+    openEyeOpacityR: 1,
+    happyArchOpacityL: 0,
+    happyArchOpacityR: 0,
+    sleepArchOpacity: 0,
+    shockEyeOpacity: 0,
+    smugLidOpacity: 0.6,
+    mouthPath: 'M 127 121 Q 136 115 145 121 Z',
+    tongueOpacity: 0,
+    mischiefTongueOpacity: 0,
+  },
+  worried: {
+    headTilt: -2.5,
+    headY: 1.5,
+    torsoTilt: -1,
+    blushOpacity: 0.5,
+    browLiftY: -3,
+    browTiltDeg: -9,
+    gazeX: -1.5,
+    gazeY: 1,
+    openEyeOpacityL: 1,
+    openEyeOpacityR: 1,
+    happyArchOpacityL: 0,
+    happyArchOpacityR: 0,
+    sleepArchOpacity: 0,
+    shockEyeOpacity: 0,
+    smugLidOpacity: 0,
+    mouthPath: 'M 129 120 Q 133 116 136 120 Q 139 123 143 119',
+    tongueOpacity: 0,
     mischiefTongueOpacity: 0,
   },
 };
@@ -754,12 +840,16 @@ export const AstronautCharacterSvg: React.FC<AstronautCharacterProps> = ({
           </g>
 
           {/* 4. SMOOTH CROSS-FADING POSE ARMS & PROPS (Never snaps abruptly!) */}
-          {/* Pose 1: Idle Arms + Sway Ticks */}
+          {/* Pose 1: Idle / Calm / Sad / Worried Arms */}
           <g
             className="astro-smooth-part"
             style={{
-              opacity: activePose === 'idle' ? 1 : 0,
-              transform: activePose === 'idle' ? 'scale(1)' : 'scale(0.94)',
+              opacity:
+                activePose === 'idle' || activePose === 'sad' || activePose === 'worried' ? 1 : 0,
+              transform:
+                activePose === 'idle' || activePose === 'sad' || activePose === 'worried'
+                  ? 'scale(1)'
+                  : 'scale(0.94)',
               transformOrigin: '135px 175px',
             }}
           >
@@ -781,10 +871,6 @@ export const AstronautCharacterSvg: React.FC<AstronautCharacterProps> = ({
             />
             <path d="M175 176L194 178" stroke="#F07E2E" strokeWidth="8" strokeLinecap="round" />
             <circle cx="184" cy="208" r="12" fill="#FFFFFF" stroke="#231115" strokeWidth="4.8" />
-            <path d="M38 228C34 236 36 246 42 252" stroke="#FFFFFF" strokeWidth="4.5" strokeLinecap="round" />
-            <path d="M48 232C45 238 46 245 50 250" stroke="#FFFFFF" strokeWidth="4.5" strokeLinecap="round" />
-            <path d="M226 226C230 234 228 244 222 250" stroke="#FFFFFF" strokeWidth="4.5" strokeLinecap="round" />
-            <path d="M216 230C219 236 218 243 214 248" stroke="#FFFFFF" strokeWidth="4.5" strokeLinecap="round" />
           </g>
 
           {/* Pose 2: Happy Celebration Arms */}
@@ -806,7 +892,7 @@ export const AstronautCharacterSvg: React.FC<AstronautCharacterProps> = ({
             <circle cx="234" cy="128" r="13" fill="#FFFFFF" stroke="#231115" strokeWidth="4.8" />
           </g>
 
-          {/* Pose 3: Wink Thumbs-Up + Golden 4-Point Star */}
+          {/* Pose 3: Wink Friendly Wave + Golden 4-Point Star (Clean Round Glove, No Finger Protrusion) */}
           <g
             className="astro-smooth-part"
             style={{
@@ -829,12 +915,6 @@ export const AstronautCharacterSvg: React.FC<AstronautCharacterProps> = ({
             <path d="M180 156L214 142" stroke="#231115" strokeWidth="5" strokeLinecap="round" />
             <circle cx="218" cy="138" r="13" fill="#FFFFFF" stroke="#231115" strokeWidth="4.8" />
             <path
-              d="M214 128V116C214 111 223 111 223 116V128"
-              fill="#FFFFFF"
-              stroke="#231115"
-              strokeWidth="4.5"
-            />
-            <path
               d="M252 96L257 110L271 115L257 120L252 134L247 120L233 115L247 110Z"
               fill="#F5A623"
               stroke="#FFFFFF"
@@ -843,13 +923,17 @@ export const AstronautCharacterSvg: React.FC<AstronautCharacterProps> = ({
             />
           </g>
 
-          {/* Pose 4: Thinking Lower Arm */}
+          {/* Pose 4: Thinking & Angry Arms on Hips */}
           <g
             className="astro-smooth-part"
-            style={{ opacity: activePose === 'thinking' ? 1 : 0 }}
+            style={{ opacity: activePose === 'thinking' || activePose === 'angry' ? 1 : 0 }}
           >
-            <path d="M86 154C74 170 82 188 112 188" stroke="#FFFFFF" strokeWidth="20" strokeLinecap="round" />
-            <path d="M86 154C74 170 82 188 112 188" stroke="#231115" strokeWidth="5" strokeLinecap="round" />
+            <path d="M86 154C74 170 82 188 106 188" stroke="#FFFFFF" strokeWidth="20" strokeLinecap="round" />
+            <path d="M86 154C74 170 82 188 106 188" stroke="#231115" strokeWidth="5" strokeLinecap="round" />
+            <circle cx="106" cy="188" r="11.5" fill="#FFFFFF" stroke="#231115" strokeWidth="4.8" />
+            <path d="M180 154C194 170 186 188 164 188" stroke="#FFFFFF" strokeWidth="20" strokeLinecap="round" />
+            <path d="M180 154C194 170 186 188 164 188" stroke="#231115" strokeWidth="5" strokeLinecap="round" />
+            <circle cx="164" cy="188" r="11.5" fill="#FFFFFF" stroke="#231115" strokeWidth="4.8" />
           </g>
 
           {/* Pose 5: Surprised Lower Sleeves */}
@@ -1266,21 +1350,6 @@ export const AstronautCharacterSvg: React.FC<AstronautCharacterProps> = ({
           {/* ================================================================= */}
           {/* 8.5 FOREGROUND HANDS OVERLAPPING CHIN / CHEEKS (Smooth Cross-Fade)*/}
           {/* ================================================================= */}
-          {/* Pose 4: Thinking Hand on Chin */}
-          <g
-            className="astro-smooth-part"
-            style={{
-              opacity: activePose === 'thinking' ? 1 : 0,
-              transform: activePose === 'thinking' ? 'translateY(0px)' : 'translateY(8px)',
-            }}
-          >
-            <path d="M174 156C186 150 176 132 152 122" stroke="#FFFFFF" strokeWidth="18" strokeLinecap="round" />
-            <path d="M174 156C186 150 176 132 152 122" stroke="#231115" strokeWidth="5" strokeLinecap="round" />
-            <circle cx="150" cy="124" r="11" fill="#FFFFFF" stroke="#231115" strokeWidth="4.5" />
-            <path d="M144 118L138 110" stroke="#FFFFFF" strokeWidth="8" strokeLinecap="round" />
-            <path d="M144 118L138 110" stroke="#231115" strokeWidth="4" strokeLinecap="round" />
-          </g>
-
           {/* Pose 5: Surprised Cupped Hands on Cheeks */}
           <g
             className="astro-smooth-part"
@@ -1318,6 +1387,54 @@ export const AstronautCharacterSvg: React.FC<AstronautCharacterProps> = ({
             <path d="M222 34L232 16" stroke="#F5A623" strokeWidth="7" strokeLinecap="round" />
             <path d="M238 46L256 34" stroke="#F5A623" strokeWidth="7" strokeLinecap="round" />
             <path d="M244 64L264 60" stroke="#F5A623" strokeWidth="7" strokeLinecap="round" />
+          </g>
+
+          {/* Sad Tear Drop Badge */}
+          <g
+            aria-hidden="true"
+            className="astro-smooth-part astro-badge-bob"
+            style={{
+              opacity: activePose === 'sad' ? 1 : 0,
+            }}
+          >
+            <path
+              d="M226 42C226 42 214 58 214 66C214 73 219.5 78 226 78C232.5 78 238 73 238 66C238 58 226 42 226 42Z"
+              fill="#38BDF8"
+              stroke="#231115"
+              strokeWidth="4"
+            />
+          </g>
+
+          {/* Worried Sweat Drop Badge */}
+          <g
+            aria-hidden="true"
+            className="astro-smooth-part astro-badge-bob"
+            style={{
+              opacity: activePose === 'worried' ? 1 : 0,
+            }}
+          >
+            <path
+              d="M232 34C232 34 221 48 221 56C221 62 226 67 232 67C238 67 243 62 243 56C243 48 232 34 232 34Z"
+              fill="#7DD3FC"
+              stroke="#231115"
+              strokeWidth="4"
+            />
+          </g>
+
+          {/* Angry Puff Symbol Badge */}
+          <g
+            aria-hidden="true"
+            className="astro-smooth-part astro-badge-bob"
+            style={{
+              opacity: activePose === 'angry' ? 1 : 0,
+            }}
+          >
+            <path
+              d="M220 34C226 40 226 46 220 52M238 34C232 40 232 46 238 52M220 34C226 40 232 40 238 34M220 52C226 46 232 46 238 52"
+              stroke="#EF4444"
+              strokeWidth="5"
+              strokeLinecap="round"
+            />
           </g>
 
           <g

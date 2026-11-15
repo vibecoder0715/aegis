@@ -1,7 +1,6 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { GoogleGenAI, ThinkingLevel } from '@google/genai';
 import {
   buildInitialCrew,
   computeBoneMetricsFromSoundWave,
@@ -10,20 +9,10 @@ import {
   generateAllMetrics,
   LiveSensorInputs,
 } from './src/utils/metricsEngine.ts';
+import { queryGlmAi } from './src/utils/glmClient.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-const aiClient = process.env.GEMINI_API_KEY
-  ? new GoogleGenAI({
-      apiKey: process.env.GEMINI_API_KEY,
-      httpOptions: {
-        headers: {
-          'User-Agent': 'aistudio-build',
-        },
-      },
-    })
-  : null;
 
 async function startServer() {
   const app = express();
@@ -33,15 +22,15 @@ async function startServer() {
   let serverCrew = buildInitialCrew();
   let cloudSyncCount = 1;
   let lastCloudAnalysis = {
-    syncedAt: new Date().toISOString().slice(11, 19) + ' UTC',
-    packetsProcessed: 7,
+    syncedAt: new Date().toISOString().slice(11, 19),
+    packetsProcessed: 10,
     boneDensityStatus: 'Normal (1.18 g/cm²)',
     recommendedMeal: 'Balanced Meal + Vitamin D3',
-    recommendedWorkout: 'Resistive Squat 45m + Treadmill 30m',
+    recommendedWorkout: 'Squats 45m + Walk 30m',
     alertsCount: 0,
   };
 
-  // GET /api/state — live backend state
+  // GET /api/state — live backend state including all 10 crewmates
   app.get('/api/state', (_req, res) => {
     const metrics = generateAllMetrics(serverSensorInputs);
     res.json({
@@ -53,80 +42,120 @@ async function startServer() {
     });
   });
 
-  // POST /api/aegis-ai — Global Gemini endpoint reading strictly the visitor's own local DB snapshot
+  // POST /api/aegis-ai — Watch & Board GLM AI endpoint
   app.post('/api/aegis-ai', async (req, res) => {
-    const visitorId = String(req.body?.visitorId || 'unknown');
+    const visitorId = String(req.body?.visitorId || 'watch-user');
     const query = String(req.body?.query || '').trim();
     const watchDbSnapshot = req.body?.watchDbSnapshot || {};
-    const matchedNasaCsaRefs = Array.isArray(req.body?.matchedNasaCsaRefs)
-      ? req.body.matchedNasaCsaRefs
-      : [];
-    const imageBase64 = typeof req.body?.imageBase64 === 'string' ? req.body.imageBase64 : '';
+    const crewSnapshot = Array.isArray(req.body?.crewSnapshot)
+      ? req.body.crewSnapshot
+      : serverCrew.map((c) => ({
+          name: c.name,
+          role: c.role,
+          location: c.moduleLocation,
+          status: c.status,
+          summary: c.conditionSummary,
+          action: c.actionRequired,
+          bp: `${c.vitals.systolicBp}/${c.vitals.diastolicBp}`,
+          hr: c.vitals.heartRate,
+          spo2: c.vitals.spo2,
+          bone: c.vitals.boneMass,
+          rad: c.vitals.radiationRate,
+          co2: c.vitals.cabinCo2,
+        }));
 
     if (!query) {
       res.status(400).json({ error: 'Query is required.' });
       return;
     }
 
-    if (!aiClient) {
-      res.status(503).json({
-        error: 'Server Gemini key unavailable; use client offline DB responder.',
-        mode: 'offline-db',
-      });
-      return;
-    }
+    const systemPrompt = [
+      'You are AegisAI, a cheerful and helpful health assistant on the Aegis Watch and Aegis Board.',
+      'Use simple, easy words (CEFR B2 level or below). Keep sentences short and clear (max 60 words total).',
+      'Use the watch telemetry and the 10 crewmates status data provided below to answer accurately.',
+    ].join(' ');
 
-    try {
-      const systemInstruction = [
-        'You are AegisAI, an aerospace smartwatch assistant inside Aegis Watch.',
-        `Strictly ground EVERY factual number, meal, workout, note, radiation reading, sleep stage, or vital sign ONLY inside visitorId="${visitorId}"'s isolated watch database snapshot provided below.`,
-        'Never invent metrics not present in the snapshot, never reference any other visitor, and keep replies concise, clear, bold and wrist-readable (max 90 words).',
-        'Cite relevant NASA HRP or CSA guidance when appropriate.',
-      ].join(' ');
+    const userPrompt = [
+      `WATCH_TELEMETRY: ${JSON.stringify(watchDbSnapshot)}`,
+      `CREWMATES_10: ${JSON.stringify(crewSnapshot)}`,
+      `USER_QUESTION: ${query}`,
+    ].join('\n');
 
-      const contextText = `VISITOR_ID: ${visitorId}\nWATCH_DATABASE_SNAPSHOT:\n${JSON.stringify(
-        watchDbSnapshot
-      )}\nMATCHED_NASA_CSA_REFS:\n${JSON.stringify(matchedNasaCsaRefs)}\n\nUSER_QUERY: ${query}`;
+    const result = await queryGlmAi({
+      systemPrompt,
+      userPrompt,
+      maxTokens: 160,
+      temperature: 0.3,
+    });
 
-      const contents = imageBase64
-        ? {
-            parts: [
-              { inlineData: { mimeType: 'image/png', data: imageBase64 } },
-              { text: contextText },
-            ],
-          }
-        : contextText;
-
-      const response = await aiClient.models.generateContent({
-        model: 'gemini-4-hydrogen',
-        contents,
-        config: {
-          systemInstruction,
-          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
-        },
-      });
-
-      const text = response.text?.trim();
-      if (!text) {
-        res.status(502).json({ error: 'Empty AI response', mode: 'offline-db' });
-        return;
-      }
-
-      res.json({ reply: text, mode: 'gemini', visitorId });
-    } catch (err) {
-      console.error('AegisAI error:', err instanceof Error ? err.message : err);
-      res.status(502).json({ error: 'Upstream AI error', mode: 'offline-db' });
-    }
+    res.json({
+      reply: result.reply,
+      mode: 'glm',
+      model: result.modelUsed,
+      provider: result.provider,
+      latencyMs: result.latencyMs,
+      visitorId,
+    });
   });
 
-  // POST /api/sync — grep buffered detector packets & run analysis
+  // POST /api/board-ai — Dedicated Commander Aegis Board AI Assistance endpoint
+  app.post('/api/board-ai', async (req, res) => {
+    const query = String(req.body?.query || 'Summarize all 10 crewmates health status and top actions.').trim();
+    const crewList = Array.isArray(req.body?.crew) ? req.body.crew : serverCrew;
+    const activeEmergencies = Array.isArray(req.body?.emergencies) ? req.body.emergencies : [];
+
+    const compactCrew = crewList.map((c: typeof serverCrew[number]) => ({
+      name: c.name,
+      role: c.role,
+      location: c.moduleLocation,
+      status: c.status,
+      summary: c.conditionSummary,
+      suggestion: c.actionRequired,
+      bp: `${c.vitals?.systolicBp}/${c.vitals?.diastolicBp}`,
+      hr: c.vitals?.heartRate,
+      spo2: c.vitals?.spo2,
+      boneMass: c.vitals?.boneMass,
+      radiation: c.vitals?.radiationRate,
+      co2: c.vitals?.cabinCo2,
+      steps: c.vitals?.steps,
+    }));
+
+    const systemPrompt = [
+      'You are Aegis Board AI, helping the mission commander monitor 10 crewmates.',
+      'Use simple, clear words (CEFR B2 or below). Keep sentences concise and actionable.',
+      'Summarize who is healthy, who has a warning or emergency, and what simple actions to take.',
+    ].join(' ');
+
+    const userPrompt = [
+      `ACTIVE_EMERGENCIES: ${JSON.stringify(activeEmergencies)}`,
+      `ALL_10_CREWMATES: ${JSON.stringify(compactCrew)}`,
+      `COMMANDER_REQUEST: ${query}`,
+    ].join('\n');
+
+    const result = await queryGlmAi({
+      systemPrompt,
+      userPrompt,
+      maxTokens: 220,
+      temperature: 0.3,
+    });
+
+    res.json({
+      ok: true,
+      reply: result.reply,
+      model: result.modelUsed,
+      provider: result.provider,
+      latencyMs: result.latencyMs,
+    });
+  });
+
+  // POST /api/sync — sync detector packets & update crewmate 1
   app.post('/api/sync', (req, res) => {
     const incomingInputs: LiveSensorInputs = {
       ...serverSensorInputs,
       ...(req.body?.sensorInputs || {}),
     };
     serverSensorInputs = incomingInputs;
-    const packets = Number(req.body?.queuedPackets || 7);
+    const packets = Number(req.body?.queuedPackets || 10);
 
     const { boneMass, tScore } = computeBoneMetricsFromSoundWave(
       serverSensorInputs.tibialSoundSpeed
@@ -134,25 +163,25 @@ async function startServer() {
     const metrics = generateAllMetrics(serverSensorInputs);
     const criticalOrWarn = metrics.filter((m) => m.status !== 'nominal').length;
 
-    let recommendedMeal = 'Balanced Meal + 1,000 IU Vitamin D3';
-    let recommendedWorkout = 'Resistive Squat 45m + Treadmill 30m';
+    let recommendedMeal = 'Balanced Meal + Vitamin D3';
+    let recommendedWorkout = 'Squats 45m + Walk 30m';
 
     if (boneMass < 1.02) {
-      recommendedMeal = 'High-Calcium (1,500 mg) Salmon & Kale + Vit D3/K2';
-      recommendedWorkout = 'Heavy Heel Raises & Deadlifts 60m';
+      recommendedMeal = 'High-calcium salmon & greens';
+      recommendedWorkout = 'Heel raises & squats 60m';
     } else if (serverSensorInputs.systolicBp >= 140) {
-      recommendedMeal = 'Low-Sodium Potassium Meal + Electrolyte Water';
-      recommendedWorkout = 'Light Cycle 25m + Slow Breathing';
+      recommendedMeal = 'Low-salt meal & water';
+      recommendedWorkout = 'Light bike 25m + Slow breathing';
     } else if (serverSensorInputs.radiationRate > 45) {
-      recommendedMeal = 'Antioxidant Berry & Astaxanthin Ration';
-      recommendedWorkout = 'Stay inside shielded berth';
+      recommendedMeal = 'Berry & antioxidant meal';
+      recommendedWorkout = 'Stay inside safe room';
     }
 
     cloudSyncCount += 1;
     lastCloudAnalysis = {
-      syncedAt: new Date().toISOString().slice(11, 19) + ' UTC',
+      syncedAt: new Date().toISOString().slice(11, 19),
       packetsProcessed: packets,
-      boneDensityStatus: `${boneMass} g/cm² (T-score ${tScore})`,
+      boneDensityStatus: `${boneMass} g/cm² (T ${tScore})`,
       recommendedMeal,
       recommendedWorkout,
       alertsCount: criticalOrWarn,
@@ -184,7 +213,7 @@ async function startServer() {
     });
   });
 
-  // POST /api/crew/update — save monitoring threshold or meal plan changes
+  // POST /api/crew/update — save crewmate threshold or meal/workout plan
   app.post('/api/crew/update', (req, res) => {
     const incoming = req.body?.member || req.body;
     if (incoming && incoming.id) {

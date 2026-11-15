@@ -74,38 +74,35 @@ test('Aegis Buff! supports 14 daily tasks, XP leveling, and Planet Builder purch
   const db = createInitialVisitorDb('visitor-buff-1');
   assert.equal(db.dailyTasks.length, 14);
   const initialPoints = db.aegisPoints;
-  const firstTask = db.dailyTasks[0];
+  const secondTask = db.dailyTasks[1];
 
-  const afterTask = completeDailyBuffTask(db, firstTask.id);
-  assert.equal(afterTask.xp, db.xp + firstTask.xpReward);
-  assert.equal(afterTask.aegisPoints, initialPoints + firstTask.pointsReward);
-  assert.equal(afterTask.dailyTasks[0].completed, true);
+  const afterTask = completeDailyBuffTask(db, secondTask.id);
+  assert.equal(afterTask.xp, db.xp + secondTask.xpReward);
+  assert.equal(afterTask.aegisPoints, initialPoints + secondTask.pointsReward);
+  assert.equal(afterTask.dailyTasks[1].completed, true);
 
   // Repeating same task is idempotent
-  const duplicate = completeDailyBuffTask(afterTask, firstTask.id);
+  const duplicate = completeDailyBuffTask(afterTask, secondTask.id);
   assert.equal(duplicate.xp, afterTask.xp);
 
-  const bought = purchasePlanetDecorator(afterTask, 'lunar_tree');
+  const bought = purchasePlanetDecorator(afterTask, 'solar_tree');
   assert.equal(bought.ok, true);
-  assert.equal(bought.db.aegisPoints, afterTask.aegisPoints - 20);
+  assert.equal(bought.db.aegisPoints, afterTask.aegisPoints - 40);
   assert.equal(bought.db.placedPlanetItems.length, afterTask.placedPlanetItems.length + 1);
 
   const levelUp = computeLevelFromXp(475);
   assert.equal(levelUp.level, 4);
 });
 
-test('AegisAI strictly isolates per-visitor databases with zero leakage', () => {
+test('AegisAI strictly isolates per-visitor databases with zero leakage and greps 10 crewmates', () => {
   const dbA = loadVisitorWatchDb('visitor-alpha');
   dbA.meals.push({
     id: 'm-alpha',
-    slot: 'Snack',
     name: 'Alpha Kale Ration',
     calories: 320,
-    proteinG: 12,
     calciumMg: 400,
     sodiumMg: 200,
-    potassiumMg: 500,
-    vitDIu: 600,
+    waterMl: 300,
     loggedAtUtc: new Date().toISOString(),
   });
 
@@ -117,18 +114,19 @@ test('AegisAI strictly isolates per-visitor databases with zero leakage', () => 
   assert.equal(grepB.visitorId, 'visitor-beta');
   assert.ok(JSON.stringify(grepA.snapshot).includes('Alpha Kale Ration'));
   assert.ok(!JSON.stringify(grepB.snapshot).includes('Alpha Kale Ration'));
+  assert.ok(JSON.stringify(grepA.snapshot).includes('Noah Lindqvist'));
 
   const nutritionA = computeNutritionTotals(dbA.meals);
   const nutritionB = computeNutritionTotals(dbB.meals);
   assert.ok(nutritionA.calories > nutritionB.calories);
 
   const offlineReply = evaluateOfflineAiQuery(
-    'check CSA neutron radiation & storm risk',
+    'check neutron radiation & storm risk',
     dbA,
     { ...DEFAULT_SENSOR_INPUTS, radiationRate: 140 }
   );
-  assert.ok(offlineReply.includes('CSA CANS'));
-  assert.ok(offlineReply.includes('storm shelter'));
+  assert.ok(offlineReply.includes('140 uSv/h'));
+  assert.ok(offlineReply.includes('safe room'));
 });
 
 test('300-iteration fuzz sweep across watch telemetry, viability, 12 env sensors & offline AI', () => {

@@ -1,322 +1,493 @@
 import React from 'react';
 import { AegisEmblemSvg } from '../src/components/AegisBrandLogo';
-import type { WatchAppId } from './watchDb';
 
-export interface WatchAppMeta {
+export type WatchAppId =
+  | 'sleep'
+  | 'nutritions'
+  | 'h2o_intake'
+  | 'emotions'
+  | 'health_insights'
+  | 'workout'
+  | 'pulse_wave'
+  | 'spo2'
+  | 'radiomeasure'
+  | 'viability'
+  | 'aegis_buff'
+  | 'aegis_ai'
+  | 'environment'
+  | 'clock'
+  | 'calendar'
+  | 'notepad'
+  | 'recorder'
+  | 'music'
+  | 'camera'
+  | 'gallery'
+  | 'calculator'
+  | 'mini_games';
+
+export interface WatchAppDefinition {
   id: WatchAppId;
+  name: string;
   label: string;
-  page: number; // 0..3 (2x3 per page = 6 per page, 21 total)
+  shortName: string;
+  accentBg: string;
+  category: 'biometric' | 'environment' | 'utility' | 'gamification';
+  page: number;
 }
 
-export const WATCH_APPS_CATALOG: WatchAppMeta[] = [
-  // Page 1 (6 apps)
-  { id: 'sleep', label: 'Sleep', page: 0 },
-  { id: 'nutritions', label: 'Nutritions', page: 0 },
-  { id: 'emotions', label: 'Emotions', page: 0 },
-  { id: 'clock', label: 'Clock', page: 0 },
-  { id: 'music', label: 'Music', page: 0 },
-  { id: 'camera', label: 'Camera', page: 0 },
-  // Page 2 (6 apps)
-  { id: 'gallery', label: 'Gallery', page: 1 },
-  { id: 'calculator', label: 'Calculator', page: 1 },
-  { id: 'environment', label: 'Environment', page: 1 },
-  { id: 'health_insights', label: 'Health Insights', page: 1 },
-  { id: 'workout', label: 'Workout', page: 1 },
-  { id: 'aegis_buff', label: 'Aegis Buff!', page: 1 },
-  // Page 3 (6 apps)
-  { id: 'notepad', label: 'Notepad', page: 2 },
-  { id: 'recorder', label: 'Recorder', page: 2 },
-  { id: 'aegis_ai', label: 'AegisAI', page: 2 },
-  { id: 'calendar', label: 'Calendar', page: 2 },
-  { id: 'pulse_wave', label: 'Pulse Wave', page: 2 },
-  { id: 'spo2', label: 'SpO2', page: 2 },
-  // Page 4 (3 apps)
-  { id: 'radiomeasure', label: 'Radiomeasure', page: 3 },
-  { id: 'viability', label: 'Viability', page: 3 },
-  { id: 'mini_games', label: 'Mini Games', page: 3 },
+/**
+ * Health & Wellbeing apps are placed right at the beginning of the Watch Apps catalog!
+ */
+export const WATCH_APPS_CATALOG: WatchAppDefinition[] = [
+  { id: 'sleep', name: 'Sleep', label: 'Sleep', shortName: 'Sleep', accentBg: '#312E81', category: 'biometric', page: 0 },
+  { id: 'nutritions', name: 'Nutritions', label: 'Nutritions', shortName: 'Food', accentBg: '#065F46', category: 'biometric', page: 0 },
+  { id: 'h2o_intake', name: 'H2O Intake', label: 'H2O Intake', shortName: 'H2O', accentBg: '#0284C7', category: 'biometric', page: 0 },
+  { id: 'emotions', name: 'Emotions', label: 'Emotions', shortName: 'Mood', accentBg: '#7C2D12', category: 'biometric', page: 0 },
+  { id: 'health_insights', name: 'Daily Steps', label: 'Daily Steps', shortName: 'Steps', accentBg: '#14532D', category: 'biometric', page: 0 },
+  { id: 'workout', name: 'Workout', label: 'Workout', shortName: 'Workout', accentBg: '#9A3412', category: 'biometric', page: 0 },
+  { id: 'pulse_wave', name: 'Pulse Wave', label: 'Pulse Wave', shortName: 'Heart', accentBg: '#881337', category: 'biometric', page: 1 },
+  { id: 'spo2', name: 'SpO2 Oxygen', label: 'SpO2 Oxygen', shortName: 'SpO2', accentBg: '#0C4A6E', category: 'biometric', page: 1 },
+  { id: 'radiomeasure', name: 'Radiomeasure', label: 'Radiomeasure', shortName: 'Rad', accentBg: '#FACC15', category: 'biometric', page: 1 },
+  { id: 'viability', name: 'Viability 3D', label: 'Viability 3D', shortName: 'Body 3D', accentBg: '#0F172A', category: 'biometric', page: 1 },
+  { id: 'aegis_buff', name: 'Aegis Buff!', label: 'Aegis Buff!', shortName: 'Buff!', accentBg: '#4C1D95', category: 'gamification', page: 1 },
+  { id: 'aegis_ai', name: 'AegisAI', label: 'AegisAI', shortName: 'AegisAI', accentBg: '#0F172A', category: 'utility', page: 1 },
+  { id: 'environment', name: 'Air & Room', label: 'Air & Room', shortName: 'Room', accentBg: '#115E59', category: 'environment', page: 2 },
+  { id: 'clock', name: 'Clock', label: 'Clock', shortName: 'Clock', accentBg: '#1E293B', category: 'utility', page: 2 },
+  { id: 'calendar', name: 'Calendar', label: 'Calendar', shortName: 'Plan', accentBg: '#1E3A8A', category: 'utility', page: 2 },
+  { id: 'notepad', name: 'Notepad', label: 'Notepad', shortName: 'Notes', accentBg: '#78350F', category: 'utility', page: 2 },
+  { id: 'recorder', name: 'Recorder', label: 'Recorder', shortName: 'Voice', accentBg: '#7F1D1D', category: 'utility', page: 2 },
+  { id: 'music', name: 'Music', label: 'Music', shortName: 'Music', accentBg: '#831843', category: 'utility', page: 2 },
+  { id: 'camera', name: 'Camera', label: 'Camera', shortName: 'Cam', accentBg: '#334155', category: 'utility', page: 3 },
+  { id: 'gallery', name: 'Gallery', label: 'Gallery', shortName: 'Photos', accentBg: '#0369A1', category: 'utility', page: 3 },
+  { id: 'calculator', name: 'Calculator', label: 'Calculator', shortName: 'Math', accentBg: '#3F3F46', category: 'utility', page: 3 },
+  { id: 'mini_games', name: 'Mini Games', label: 'Mini Games', shortName: 'Games', accentBg: '#3730A3', category: 'gamification', page: 3 },
 ];
 
-export const WatchAppIconSvg: React.FC<{ id: WatchAppId; size?: number }> = ({
+export const WatchAppIconSvg: React.FC<{ appId?: WatchAppId; id?: WatchAppId; size?: number }> = ({
+  appId,
   id,
-  size = 52,
+  size = 36,
 }) => {
-  const s = size;
-  switch (id) {
+  const resolvedId = appId ?? id ?? 'sleep';
+  switch (resolvedId) {
+    case 'h2o_intake':
+      // Cute Water Droplet & Hydration Glass SVG
+      return (
+        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="21" fill="#0C4A6E" stroke="#38BDF8" strokeWidth="2.5" />
+          <path
+            d="M24 10C24 10 34 21.5 34 28.5C34 34.2 29.5 38.5 24 38.5C18.5 38.5 14 34.2 14 28.5C14 21.5 24 10 24 10Z"
+            fill="#38BDF8"
+            stroke="#BAE6FD"
+            strokeWidth="2"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M19.5 28C19.5 31 21.5 33.5 24.5 33.5"
+            stroke="#FFFFFF"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+          />
+          <circle cx="28" cy="24" r="1.8" fill="#E0F2FE" />
+        </svg>
+      );
+
     case 'sleep':
+      // Crescent moon ONLY (clean golden crescent moon on deep night circle)
       return (
-        <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="30" fill="#4C1D95" />
-          <path d="M37 18C28 19 22 27 24 36C26 45 35 50 44 47C36 49 30 43 30 34C30 26 33 21 37 18Z" fill="#C4B5FD" />
-          <text x="41" y="25" fill="#EDE9FE" fontSize="10" fontWeight="800">z</text>
-          <text x="47" y="19" fill="#DDD6FE" fontSize="8" fontWeight="800">z</text>
+        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="21" fill="#1E1B4B" stroke="#818CF8" strokeWidth="2.5" />
+          <path
+            d="M29.5 11.5C21.2 12.6 15.5 20.3 17.2 28.5C18.9 36.2 26.8 40.5 34.5 37.2C27.8 36.4 23.2 30.2 24.1 22.8C24.8 17.2 28.1 13.4 32.5 12C31.5 11.6 30.5 11.4 29.5 11.5Z"
+            fill="#FACC15"
+            stroke="#FEF08A"
+            strokeWidth="1.5"
+            strokeLinejoin="round"
+          />
         </svg>
       );
+
     case 'nutritions':
+      // Cute Broccoli and Egg vector icon
       return (
-        <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="30" fill="#16A34A" />
-          <path d="M32 22C24 22 19 29 19 36C19 44 25 49 32 49C39 49 45 44 45 36C45 29 40 22 32 22Z" fill="#DCFCE7" />
-          <path d="M32 22C33 16 38 14 42 15C41 19 37 22 32 22Z" fill="#BBF7D0" />
+        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="21" fill="#064E3B" stroke="#34D399" strokeWidth="2.5" />
+          {/* Broccoli Stalk & Fluffy Green Crown (Left) */}
+          <path
+            d="M17 26V35C17 36.5 21 36.5 21 35V26H17Z"
+            fill="#86EFAC"
+            stroke="#064E3B"
+            strokeWidth="1.5"
+          />
+          <circle cx="15" cy="21" r="5.2" fill="#22C55E" />
+          <circle cx="20" cy="18.5" r="5.8" fill="#16A34A" />
+          <circle cx="23.5" cy="22.5" r="4.8" fill="#4ADE80" />
+          {/* Sunny-Side-Up Egg (Right) */}
+          <path
+            d="M28 22C33.5 21.5 38 25.5 37.5 30.8C37 35.8 32 38.5 26.8 37.5C22.2 36.6 20.5 32.5 22.2 28.2C23.5 24.5 25 22.3 28 22Z"
+            fill="#FFFFFF"
+            stroke="#E2E8F0"
+            strokeWidth="1.5"
+          />
+          <circle cx="30" cy="30.2" r="4.5" fill="#F59E0B" />
+          <circle cx="28.8" cy="28.8" r="1.3" fill="#FEF08A" />
         </svg>
       );
+
     case 'emotions':
       return (
-        <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="30" fill="#F8FAFC" />
-          <ellipse cx="32" cy="32" rx="18" ry="12" transform="rotate(-25 32 32)" fill="#F59E0B" fillOpacity="0.85" />
-          <ellipse cx="32" cy="32" rx="18" ry="11" transform="rotate(30 32 32)" fill="#06B6D4" fillOpacity="0.65" />
-          <circle cx="32" cy="32" r="7" fill="#3B82F6" fillOpacity="0.55" />
+        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="21" fill="#7C2D12" stroke="#FB923C" strokeWidth="2.5" />
+          <circle cx="24" cy="24" r="13.5" fill="#FDE047" stroke="#431407" strokeWidth="2" />
+          <path d="M17.5 21.5C18.5 19.5 20.5 19.5 21.5 21.5" stroke="#431407" strokeWidth="2.4" strokeLinecap="round" />
+          <path d="M26.5 21.5C27.5 19.5 29.5 19.5 30.5 21.5" stroke="#431407" strokeWidth="2.4" strokeLinecap="round" />
+          <ellipse cx="16.8" cy="25" rx="2.2" ry="1.3" fill="#FB7185" />
+          <ellipse cx="31.2" cy="25" rx="2.2" ry="1.3" fill="#FB7185" />
+          <path d="M18.5 27C20.5 31 27.5 31 29.5 27" stroke="#431407" strokeWidth="2.5" strokeLinecap="round" />
         </svg>
       );
-    case 'clock':
-      return (
-        <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="30" fill="#1E293B" />
-          <circle cx="32" cy="32" r="20" stroke="#E2E8F0" strokeWidth="3" />
-          <path d="M32 20V32L40 37" stroke="#38BDF8" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      );
-    case 'music':
-      return (
-        <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="30" fill="#E11D48" />
-          <path d="M27 42V22L44 19V38" stroke="#FFFFFF" strokeWidth="3.8" strokeLinecap="round" strokeLinejoin="round" />
-          <circle cx="23" cy="43" r="5" fill="#FFFFFF" />
-          <circle cx="40" cy="39" r="5" fill="#FFFFFF" />
-        </svg>
-      );
-    case 'camera':
-      return (
-        <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="30" fill="#334155" />
-          <rect x="16" y="22" width="32" height="23" rx="6" fill="#E2E8F0" />
-          <path d="M25 22L28 17H36L39 22" fill="#E2E8F0" />
-          <circle cx="32" cy="34" r="7" fill="#0F172A" stroke="#38BDF8" strokeWidth="2.5" />
-        </svg>
-      );
-    case 'gallery':
-      return (
-        <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="30" fill="#0284C7" />
-          <rect x="17" y="19" width="30" height="26" rx="5" fill="#FFFFFF" />
-          <circle cx="25" cy="27" r="3.5" fill="#F59E0B" />
-          <path d="M20 41L29 31L36 37L40 33L45 41H20Z" fill="#0EA5E9" />
-        </svg>
-      );
-    case 'calculator':
-      return (
-        <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="30" fill="#D97706" />
-          <rect x="20" y="16" width="24" height="32" rx="4" fill="#FFFBEB" />
-          <rect x="23" y="20" width="18" height="6" rx="2" fill="#1E293B" />
-          <circle cx="26" cy="32" r="2.2" fill="#475569" />
-          <circle cx="32" cy="32" r="2.2" fill="#475569" />
-          <circle cx="38" cy="32" r="2.2" fill="#D97706" />
-          <circle cx="26" cy="40" r="2.2" fill="#475569" />
-          <circle cx="32" cy="40" r="2.2" fill="#475569" />
-          <circle cx="38" cy="40" r="2.2" fill="#D97706" />
-        </svg>
-      );
-    case 'environment':
-      return (
-        <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="30" fill="#0D9488" />
-          <circle cx="32" cy="33" r="14" stroke="#CCFBF1" strokeWidth="3" fill="#14B8A6" />
-          <ellipse cx="32" cy="33" rx="21" ry="7" transform="rotate(-20 32 33)" stroke="#FFFFFF" strokeWidth="2.8" />
-        </svg>
-      );
+
     case 'health_insights':
       return (
-        <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="30" fill="#06B6D4" />
-          <circle cx="32" cy="34" r="9" fill="#FFFFFF" />
-          <circle cx="32" cy="19" r="3.5" fill="#FFFFFF" />
-          <circle cx="19" cy="41" r="3.5" fill="#FFFFFF" />
-          <circle cx="45" cy="41" r="3.5" fill="#FFFFFF" />
-          <path d="M32 22V28M22 39L27 36M42 39L37 36" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
+        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="21" fill="#14532D" stroke="#4ADE80" strokeWidth="2.5" />
+          <circle cx="24" cy="24" r="13" stroke="#22C55E" strokeWidth="3.5" strokeDasharray="62 20" strokeLinecap="round" />
+          <circle cx="24" cy="24" r="8" stroke="#38BDF8" strokeWidth="3.5" strokeDasharray="38 14" strokeLinecap="round" />
+          <circle cx="24" cy="24" r="3" fill="#FACC15" />
         </svg>
       );
+
     case 'workout':
+      // Refined dynamic running man icon with motion speed lines
       return (
-        <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="30" fill="#EA580C" />
-          <circle cx="36" cy="18" r="4" fill="#FFFFFF" />
-          <path d="M23 30L31 25L39 29L45 25M31 25L29 37L20 45M29 37L38 42L41 49" stroke="#FFFFFF" strokeWidth="3.8" strokeLinecap="round" strokeLinejoin="round" />
+        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="21" fill="#9A3412" stroke="#FB923C" strokeWidth="2.5" />
+          {/* Speed lines */}
+          <path d="M9 19H14" stroke="#FDBA74" strokeWidth="2.2" strokeLinecap="round" />
+          <path d="M7 25H13" stroke="#FDBA74" strokeWidth="2.2" strokeLinecap="round" />
+          <path d="M10 31H15" stroke="#FDBA74" strokeWidth="2.2" strokeLinecap="round" />
+          {/* Runner Head */}
+          <circle cx="30" cy="13.5" r="3.8" fill="#FDE047" />
+          {/* Runner Torso & Arms */}
+          <path
+            d="M20 18.5L26.5 18L31.5 21.5L36 18.5"
+            stroke="#FFFFFF"
+            strokeWidth="3.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M27.5 18.5L23.5 26.5L16.5 29"
+            stroke="#FDE047"
+            strokeWidth="3.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {/* Forward stride leg */}
+          <path
+            d="M24 26L31 28.5L34.5 36"
+            stroke="#FFFFFF"
+            strokeWidth="3.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       );
+
+    case 'pulse_wave':
+      return (
+        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="21" fill="#881337" stroke="#FB7185" strokeWidth="2.5" />
+          <path
+            d="M24 35.5C24 35.5 12 27.8 12 19.5C12 15.5 15.2 12.5 19 12.5C21.4 12.5 23.2 13.8 24 15.4C24.8 13.8 26.6 12.5 29 12.5C32.8 12.5 36 15.5 36 19.5C36 27.8 24 35.5 24 35.5Z"
+            fill="#F43F5E"
+          />
+          <path
+            d="M11 24.5H18.5L21.5 18.5L25.5 30L28.5 22.5L30.5 24.5H37"
+            stroke="#FFFFFF"
+            strokeWidth="2.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      );
+
+    case 'spo2':
+      return (
+        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="21" fill="#0C4A6E" stroke="#38BDF8" strokeWidth="2.5" />
+          <path
+            d="M24 10C24 10 35 22 35 29.5C35 35.5 30 39 24 39C18 39 13 35.5 13 29.5C13 22 24 10 24 10Z"
+            fill="#0284C7"
+            stroke="#BAE6FD"
+            strokeWidth="2"
+          />
+          <text x="24" y="32" textAnchor="middle" fill="#FFFFFF" fontSize="10.5" fontWeight="900">
+            O2
+          </text>
+        </svg>
+      );
+
+    case 'radiomeasure':
+      // Classic 3-fan radiation trefoil symbol on bright yellow circle matching screenshot image_cf2fd55f.png
+      return (
+        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="21.5" fill="#FACC15" stroke="#111827" strokeWidth="3" />
+          {/* Top-Left Fan Blade */}
+          <path
+            d="M20.2 21.8L11.2 16.6A14.8 14.8 0 0 1 21.4 9.3L22.6 19.6A4.5 4.5 0 0 0 20.2 21.8Z"
+            fill="#111827"
+          />
+          {/* Top-Right Fan Blade */}
+          <path
+            d="M27.8 21.8L36.8 16.6A14.8 14.8 0 0 0 26.6 9.3L25.4 19.6A4.5 4.5 0 0 1 27.8 21.8Z"
+            fill="#111827"
+          />
+          {/* Bottom Fan Blade */}
+          <path
+            d="M21.5 27.8L16.3 36.8A14.8 14.8 0 0 0 31.7 36.8L26.5 27.8A4.5 4.5 0 0 1 21.5 27.8Z"
+            fill="#111827"
+          />
+          {/* Center Core Dot */}
+          <circle cx="24" cy="24" r="3.6" fill="#111827" />
+        </svg>
+      );
+
+    case 'viability':
+      // Refined 3D Wireframe Human Body Icon
+      return (
+        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="21" fill="#090D16" stroke="#38BDF8" strokeWidth="2.5" />
+          {/* Wireframe Head */}
+          <ellipse cx="24" cy="11.5" rx="3.6" ry="4.2" stroke="#E2E8F0" strokeWidth="1.6" />
+          <path d="M20.5 11.5H27.5M24 7.5V15.5" stroke="#38BDF8" strokeWidth="1" />
+          {/* Wireframe Torso Mesh */}
+          <path
+            d="M18.5 16.5H29.5L28 27.5H20L18.5 16.5Z"
+            stroke="#E2E8F0"
+            strokeWidth="1.6"
+            strokeLinejoin="round"
+          />
+          <path d="M19 20H29M19.5 23.5H28.5M24 16.5V27.5" stroke="#38BDF8" strokeWidth="1.1" />
+          {/* Wireframe Arms */}
+          <path d="M18.5 17L12.5 25.5M29.5 17L35.5 25.5" stroke="#E2E8F0" strokeWidth="1.8" strokeLinecap="round" />
+          {/* Wireframe Legs */}
+          <path d="M20.5 27.5L18.5 39M27.5 27.5L29.5 39" stroke="#E2E8F0" strokeWidth="1.8" strokeLinecap="round" />
+          <path d="M19.5 33H21.5M26.5 33H28.5" stroke="#38BDF8" strokeWidth="1.2" />
+        </svg>
+      );
+
     case 'aegis_buff':
+      // Super handsome Golden Star + Muscular Flexing Arm icon!
       return (
-        <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="30" fill="#7C3AED" />
-          <path d="M32 15L36.5 25.5L48 27L39.5 34.5L41.5 46L32 40L22.5 46L24.5 34.5L16 27L27.5 25.5L32 15Z" fill="#FDE047" />
+        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="buffBgGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#4C1D95" />
+              <stop offset="100%" stopColor="#1E1B4B" />
+            </linearGradient>
+            <linearGradient id="goldStarGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#FEF08A" />
+              <stop offset="100%" stopColor="#F59E0B" />
+            </linearGradient>
+          </defs>
+          <circle cx="24" cy="24" r="21" fill="url(#buffBgGrad)" stroke="#FBBF24" strokeWidth="2.5" />
+          {/* Radiant Handsome Star (Upper Right) */}
+          <path
+            d="M32 8.5L34.2 13.2L39.3 13.9L35.6 17.4L36.5 22.5L32 20L27.5 22.5L28.4 17.4L24.7 13.9L29.8 13.2L32 8.5Z"
+            fill="url(#goldStarGrad)"
+            stroke="#FFFFFF"
+            strokeWidth="1.3"
+            strokeLinejoin="round"
+          />
+          {/* Handsome Muscular Flexing Bicep & Fist (Foreground) */}
+          <path
+            d="M14 21C12.2 21 11 19.5 11.5 17.5C12 15.2 14.8 14.5 16.8 16C17.8 16.8 18.2 18.5 17.5 20L15.8 25.5C18.5 23.2 22.8 23.2 25.6 25.6C27.8 27.5 28.2 30.5 26.5 32.8C29.5 32.5 32.5 30.8 34.5 28.5C36 31.8 33.8 36.2 29.2 37.5C23.5 39 15.8 38.2 12.2 34.2C9.8 31.5 10.5 26.5 14 21Z"
+            fill="#FBBF24"
+            stroke="#FEF08A"
+            strokeWidth="1.8"
+            strokeLinejoin="round"
+          />
+          {/* Bicep Peak Definition Curve */}
+          <path
+            d="M19.5 27.5C21.5 26.2 24 26.8 25 28.8"
+            stroke="#78350F"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
         </svg>
       );
-    case 'notepad':
-      return (
-        <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="30" fill="#EAB308" />
-          <rect x="20" y="16" width="24" height="32" rx="4" fill="#FFFFFF" />
-          <path d="M25 25H39M25 32H39M25 39H34" stroke="#CA8A04" strokeWidth="3" strokeLinecap="round" />
-        </svg>
-      );
-    case 'recorder':
-      return (
-        <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="30" fill="#DC2626" />
-          <rect x="27" y="16" width="10" height="18" rx="5" fill="#FFFFFF" />
-          <path d="M21 30C21 36.1 25.9 41 32 41C38.1 41 43 36.1 43 30M32 41V48M25 48H39" stroke="#FFFFFF" strokeWidth="3.2" strokeLinecap="round" />
-        </svg>
-      );
+
     case 'aegis_ai':
       return (
         <div
-          style={{ width: s, height: s }}
-          className="rounded-full bg-white flex items-center justify-center shadow-md border border-slate-200"
+          style={{ width: size, height: size }}
+          className="rounded-full bg-white flex items-center justify-center shadow-inner border-2 border-amber-400"
         >
-          <AegisEmblemSvg size={Math.round(s * 0.62)} />
+          <AegisEmblemSvg size={Math.round(size * 0.72)} />
         </div>
       );
+
+    case 'environment':
+      return (
+        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="21" fill="#115E59" stroke="#2DD4BF" strokeWidth="2.5" />
+          <circle cx="24" cy="24" r="11" stroke="#99F6E4" strokeWidth="2.2" />
+          <path d="M13 24H35M24 13C27 16.5 27 31.5 24 35C21 31.5 21 16.5 24 13Z" stroke="#5EEAD4" strokeWidth="2" />
+        </svg>
+      );
+
+    case 'clock':
+      return (
+        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="21" fill="#1E293B" stroke="#94A3B8" strokeWidth="2.5" />
+          <circle cx="24" cy="24" r="12" stroke="#F8FAFC" strokeWidth="2.4" />
+          <path d="M24 17V24L29 27" stroke="#38BDF8" strokeWidth="2.6" strokeLinecap="round" />
+        </svg>
+      );
+
     case 'calendar':
       return (
-        <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="30" fill="#2563EB" />
-          <rect x="17" y="19" width="30" height="27" rx="5" fill="#FFFFFF" />
-          <path d="M17 27H47" stroke="#EF4444" strokeWidth="5" />
-          <text x="32" y="42" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="900">U0</text>
+        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="21" fill="#1E3A8A" stroke="#60A5FA" strokeWidth="2.5" />
+          <rect x="13" y="14" width="22" height="20" rx="4" fill="#EFF6FF" />
+          <rect x="13" y="14" width="22" height="6" rx="2" fill="#EF4444" />
+          <text x="24" y="30" textAnchor="middle" fill="#1E3A8A" fontSize="10" fontWeight="900">
+            15
+          </text>
         </svg>
       );
-    case 'pulse_wave':
+
+    case 'notepad':
       return (
-        <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="30" fill="#E11D48" />
-          <path d="M13 33H21L26 21L32 44L38 25L42 33H51" stroke="#FFFFFF" strokeWidth="3.6" strokeLinecap="round" strokeLinejoin="round" />
+        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="21" fill="#78350F" stroke="#FBBF24" strokeWidth="2.5" />
+          <rect x="15" y="12" width="18" height="24" rx="3" fill="#FEF3C7" />
+          <path d="M19 19H29M19 24H29M19 29H25" stroke="#92400E" strokeWidth="2.2" strokeLinecap="round" />
         </svg>
       );
-    case 'spo2':
+
+    case 'recorder':
       return (
-        <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="30" fill="#0EA5E9" />
-          <path d="M32 15C24 26 20 33 20 39C20 45.6 25.4 51 32 51C38.6 51 44 45.6 44 39C44 33 40 26 32 15Z" fill="#FFFFFF" />
-          <text x="32" y="42" textAnchor="middle" fill="#0284C7" fontSize="12" fontWeight="900">O₂</text>
+        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="21" fill="#7F1D1D" stroke="#F87171" strokeWidth="2.5" />
+          <rect x="20" y="13" width="8" height="14" rx="4" fill="#FCA5A5" />
+          <path d="M16 24C16 28.4 19.6 32 24 32C28.4 32 32 28.4 32 24M24 32V36" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" />
         </svg>
       );
-    case 'radiomeasure':
+
+    case 'music':
       return (
-        <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="30" fill="#FACC15" />
-          <circle cx="32" cy="32" r="4.5" fill="#0F172A" />
-          <path d="M32 16A16 16 0 0 1 45.8 24L37 29A6 6 0 0 0 32 26V16Z" fill="#0F172A" />
-          <path d="M18.2 24A16 16 0 0 1 32 16V26A6 6 0 0 0 27 29L18.2 24Z" fill="#0F172A" />
-          <path d="M32 48A16 16 0 0 1 18.2 40L27 35A6 6 0 0 0 37 35L45.8 40A16 16 0 0 1 32 48Z" fill="#0F172A" />
+        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="21" fill="#831843" stroke="#F472B6" strokeWidth="2.5" />
+          <path d="M20 31V16L32 13V28" stroke="#FBCFE8" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="17.5" cy="31.5" r="3.5" fill="#F472B6" />
+          <circle cx="29.5" cy="28.5" r="3.5" fill="#F472B6" />
         </svg>
       );
-    case 'viability':
+
+    case 'camera':
       return (
-        <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="30" fill="#059669" />
-          <circle cx="32" cy="20" r="5" fill="#FFFFFF" />
-          <path d="M22 30H42M32 26V40M26 50L32 40L38 50" stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="21" fill="#334155" stroke="#CBD5E1" strokeWidth="2.5" />
+          <rect x="12" y="17" width="24" height="17" rx="4" fill="#0F172A" stroke="#E2E8F0" strokeWidth="2" />
+          <circle cx="24" cy="25.5" r="5" stroke="#38BDF8" strokeWidth="2.5" />
+          <circle cx="31" cy="20.5" r="1.5" fill="#F43F5E" />
         </svg>
       );
+
+    case 'gallery':
+      return (
+        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="21" fill="#0369A1" stroke="#7DD3FC" strokeWidth="2.5" />
+          <rect x="13" y="15" width="22" height="18" rx="3" fill="#E0F2FE" />
+          <circle cx="19" cy="20.5" r="2.2" fill="#F59E0B" />
+          <path d="M14 31L21 24L26 28L30 25L34 31H14Z" fill="#0284C7" />
+        </svg>
+      );
+
+    case 'calculator':
+      return (
+        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="21" fill="#3F3F46" stroke="#D4D4D8" strokeWidth="2.5" />
+          <rect x="15" y="12" width="18" height="24" rx="3" fill="#18181B" stroke="#A1A1AA" strokeWidth="2" />
+          <rect x="18" y="15" width="12" height="5" rx="1" fill="#34D399" />
+          <circle cx="19.5" cy="24.5" r="1.6" fill="#F4F4F5" />
+          <circle cx="24" cy="24.5" r="1.6" fill="#F4F4F5" />
+          <circle cx="28.5" cy="24.5" r="1.6" fill="#F59E0B" />
+          <circle cx="19.5" cy="29.5" r="1.6" fill="#F4F4F5" />
+          <circle cx="24" cy="29.5" r="1.6" fill="#F4F4F5" />
+          <circle cx="28.5" cy="29.5" r="1.6" fill="#F59E0B" />
+        </svg>
+      );
+
     case 'mini_games':
       return (
-        <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="30" fill="#4F46E5" />
-          <rect x="16" y="23" width="32" height="19" rx="9" fill="#FFFFFF" />
-          <path d="M24 29V36M20.5 32.5H27.5" stroke="#4F46E5" strokeWidth="3" strokeLinecap="round" />
-          <circle cx="39" cy="30" r="2.2" fill="#EF4444" />
-          <circle cx="42.5" cy="34.5" r="2.2" fill="#10B981" />
+        <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="21" fill="#3730A3" stroke="#A5B4FC" strokeWidth="2.5" />
+          <rect x="12" y="18" width="24" height="13" rx="6.5" fill="#EEF2FF" />
+          <path d="M18 22V27M15.5 24.5H20.5" stroke="#3730A3" strokeWidth="2.4" strokeLinecap="round" />
+          <circle cx="29" cy="23" r="1.8" fill="#EF4444" />
+          <circle cx="32.5" cy="26" r="1.8" fill="#10B981" />
         </svg>
       );
   }
 };
 
-/**
- * Cute Planet Decorator SVG sprite rendered on Aegis Buff! Planet Builder
- */
 export const PlanetDecoratorSvg: React.FC<{ itemId: string; size?: number }> = ({
   itemId,
-  size = 24,
+  size = 28,
 }) => {
   switch (itemId) {
-    case 'bio_dome':
+    case 'solar_tree':
       return (
-        <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-          <path d="M4 24C4 14 10 9 16 9C22 9 28 14 28 24H4Z" fill="#A7F3D0" stroke="#059669" strokeWidth="2" />
-          <path d="M16 14V22M12 18C12 16 14 15 16 16M16 18C18 16 20 17 20 19" stroke="#047857" strokeWidth="2" strokeLinecap="round" />
+        <svg width={size} height={size} viewBox="0 0 36 36" fill="none">
+          <rect x="16" y="21" width="4" height="11" rx="1.5" fill="#92400E" />
+          <circle cx="18" cy="15" r="9" fill="#22C55E" stroke="#14532D" strokeWidth="2" />
+          <circle cx="15" cy="13" r="2" fill="#FEF08A" />
         </svg>
       );
-    case 'lunar_tree':
+    case 'hydro_dome':
       return (
-        <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-          <rect x="14" y="19" width="4" height="9" rx="1.5" fill="#92400E" />
-          <circle cx="16" cy="14" r="8" fill="#F472B6" />
-          <circle cx="13" cy="12" r="2" fill="#FDE047" />
+        <svg width={size} height={size} viewBox="0 0 36 36" fill="none">
+          <path d="M6 28C6 18 11 11 18 11C25 11 30 18 30 28H6Z" fill="#38BDF8" stroke="#0284C7" strokeWidth="2" />
+          <rect x="4" y="27" width="28" height="4" rx="2" fill="#94A3B8" />
+        </svg>
+      );
+    case 'aurora_ring':
+      return (
+        <svg width={size} height={size} viewBox="0 0 36 36" fill="none">
+          <ellipse cx="18" cy="18" rx="15" ry="6" transform="rotate(-18 18 18)" stroke="#A855F7" strokeWidth="3.5" />
+          <ellipse cx="18" cy="18" rx="11" ry="4" transform="rotate(-18 18 18)" stroke="#34D399" strokeWidth="2" />
         </svg>
       );
     case 'mini_rover':
       return (
-        <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-          <rect x="7" y="15" width="18" height="8" rx="3" fill="#F8FAFC" stroke="#334155" strokeWidth="1.5" />
-          <circle cx="11" cy="24" r="3" fill="#1E293B" />
-          <circle cx="21" cy="24" r="3" fill="#1E293B" />
-          <path d="M19 15V9L23 9" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" />
+        <svg width={size} height={size} viewBox="0 0 36 36" fill="none">
+          <rect x="9" y="16" width="18" height="8" rx="2.5" fill="#FBBF24" stroke="#78350F" strokeWidth="2" />
+          <circle cx="13" cy="26" r="3.5" fill="#334155" />
+          <circle cx="23" cy="26" r="3.5" fill="#334155" />
+          <path d="M22 16V10L26 8" stroke="#E2E8F0" strokeWidth="2" strokeLinecap="round" />
         </svg>
       );
-    case 'solar_wing':
+    case 'beacon_tower':
       return (
-        <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-          <rect x="14.5" y="16" width="3" height="11" fill="#CBD5E1" />
-          <rect x="5" y="10" width="22" height="9" rx="2" fill="#2563EB" stroke="#93C5FD" strokeWidth="1.5" />
-          <path d="M12 10V19M20 10V19" stroke="#93C5FD" strokeWidth="1.2" />
+        <svg width={size} height={size} viewBox="0 0 36 36" fill="none">
+          <path d="M13 30L18 10L23 30H13Z" fill="#CBD5E1" stroke="#475569" strokeWidth="2" />
+          <circle cx="18" cy="9" r="3.5" fill="#F43F5E" />
         </svg>
       );
-    case 'comms_dish':
+    case 'starlight_pond':
       return (
-        <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-          <path d="M12 26L16 17L20 26" stroke="#CBD5E1" strokeWidth="2" />
-          <path d="M8 10C11 16 19 18 24 14" stroke="#38BDF8" strokeWidth="3" strokeLinecap="round" />
-          <circle cx="20" cy="10" r="2" fill="#FBBF24" />
-        </svg>
-      );
-    case 'astro_buddy':
-      return (
-        <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-          <circle cx="16" cy="11" r="7" fill="#FFFFFF" stroke="#1E293B" strokeWidth="1.5" />
-          <circle cx="16" cy="11" r="4.5" fill="#FDE68A" />
-          <circle cx="14.5" cy="11" r="1" fill="#1E293B" />
-          <circle cx="17.5" cy="11" r="1" fill="#1E293B" />
-          <rect x="11" y="18" width="10" height="9" rx="4" fill="#FFFFFF" stroke="#1E293B" strokeWidth="1.5" />
-          <path d="M21 19L26 14" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
-        </svg>
-      );
-    case 'campfire':
-      return (
-        <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-          <path d="M16 7C12 13 11 17 11 20C11 23 13 25 16 25C19 25 21 23 21 20C21 17 19 14 16 7Z" fill="#FB923C" />
-          <path d="M16 14C14 17 14 21 16 23C18 21 18 17 16 14Z" fill="#FEF08A" />
-        </svg>
-      );
-    case 'observatory':
-      return (
-        <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-          <rect x="8" y="17" width="16" height="10" rx="2" fill="#E2E8F0" />
-          <path d="M8 17C8 11 12 8 16 8C20 8 24 11 24 17H8Z" fill="#38BDF8" />
-          <path d="M19 11L26 6" stroke="#1E293B" strokeWidth="3" strokeLinecap="round" />
-        </svg>
-      );
-    case 'water_pod':
-      return (
-        <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-          <rect x="7" y="11" width="18" height="14" rx="6" fill="#0EA5E9" stroke="#BAE6FD" strokeWidth="1.5" />
-          <text x="16" y="21" textAnchor="middle" fill="#FFFFFF" fontSize="8" fontWeight="900">H₂O</text>
+        <svg width={size} height={size} viewBox="0 0 36 36" fill="none">
+          <ellipse cx="18" cy="22" rx="13" ry="7" fill="#0EA5E9" stroke="#7DD3FC" strokeWidth="2" />
+          <path d="M18 14L19.5 18L23.5 19.5L19.5 21L18 25L16.5 21L12.5 19.5L16.5 18Z" fill="#FEF08A" />
         </svg>
       );
     default:
       return (
-        <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-          <path d="M10 27V7M10 7L24 11L10 16" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M10 7L24 11L10 16V7Z" fill="#EF4444" />
+        <svg width={size} height={size} viewBox="0 0 36 36" fill="none">
+          <path d="M18 6L26 18L18 30L10 18L18 6Z" fill="#F472B6" stroke="#9D174D" strokeWidth="2" />
         </svg>
       );
   }

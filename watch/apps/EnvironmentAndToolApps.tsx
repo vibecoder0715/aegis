@@ -5,15 +5,13 @@ import {
   Plus,
   Trash2,
   CheckCircle2,
-  Code2,
   Timer,
   Bell,
+  Info,
+  X,
 } from 'lucide-react';
 import type { LiveSensorInputs } from '../../src/utils/metricsEngine';
-import {
-  buildEnvironmentDetectors,
-  generateDynamicEnvironmentJson,
-} from '../environmentDetectors';
+import { buildEnvironmentDetectors } from '../environmentDetectors';
 import {
   OFFLINE_MUSIC_TRACKS,
   playAlarmRing,
@@ -32,65 +30,77 @@ interface EnvToolAppProps {
 }
 
 export const EnvironmentAppView: React.FC<EnvToolAppProps> = ({ db, inputs }) => {
-  const [showJson, setShowJson] = useState(false);
+  const [selectedDetector, setSelectedDetector] = useState<string | null>(null);
   const detectors = buildEnvironmentDetectors(inputs, db.extraEnv);
-  const packet = generateDynamicEnvironmentJson(
-    db.visitorId,
-    inputs,
-    db.extraEnv,
-    db.settings.offlineSimulated
-  );
+  const activeCount = detectors.filter((d) => d.status !== 'nominal').length;
+  const activeItem = detectors.find((d) => d.id === selectedDetector);
 
   return (
     <div className="space-y-2.5 text-white">
-      <div className="flex items-center justify-between bg-teal-950/70 border border-teal-500/40 rounded-2xl p-2.5">
+      <div className="flex items-center justify-between bg-teal-950/75 border border-teal-500/40 rounded-2xl p-2.5">
         <div>
-          <div className="text-[11px] font-bold uppercase text-teal-300">
-            12 Env Detectors
+          <div className="text-[10px] font-bold uppercase text-teal-300">
+            Room & Suit Air
           </div>
-          <div className="text-[11px] font-mono text-slate-300">
-            {packet.activeAlertsCount === 0
-              ? 'All 12 sensors nominal'
-              : `${packet.activeAlertsCount} active hazard(s)`}
+          <div className="text-xs font-extrabold text-white">
+            {activeCount === 0 ? 'All 12 checks are safe' : `${activeCount} room alert(s) now`}
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            playTapClick(db.settings.muted);
-            setShowJson((v) => !v);
-          }}
-          className="px-2.5 py-1.5 rounded-xl bg-teal-400 text-slate-950 text-[10px] font-black flex items-center gap-1 cursor-pointer"
-        >
-          <Code2 className="w-3.5 h-3.5" />
-          {showJson ? 'Cards' : 'Live JSON'}
-        </button>
+        <Info className="w-4 h-4 text-teal-300 shrink-0" />
       </div>
 
-      {showJson ? (
-        <pre className="rounded-2xl bg-slate-950 border border-teal-500/30 p-2.5 text-[10px] font-mono text-emerald-300 overflow-x-auto max-h-64 leading-tight">
-          {JSON.stringify(packet, null, 2)}
-        </pre>
-      ) : (
-        <div className="grid grid-cols-2 gap-1.5">
-          {detectors.map((d) => (
-            <div
-              key={d.id}
-              className={`rounded-xl p-2 border text-[11px] ${
-                d.status === 'critical'
-                  ? 'bg-red-950/90 border-red-400'
-                  : d.status === 'warning'
-                  ? 'bg-amber-950/80 border-amber-400'
-                  : 'bg-slate-900 border-slate-700'
-              }`}
-            >
-              <div className="text-[10px] font-bold text-slate-300 truncate">{d.shortLabel}</div>
-              <div className="font-mono text-sm font-extrabold text-white tabular-nums">
-                {d.value} <span className="text-[10px] font-normal text-slate-400">{d.unit}</span>
-              </div>
-              <div className="text-[9px] text-slate-400 truncate">{d.safeRange}</div>
+      <div className="grid grid-cols-2 gap-1.5">
+        {detectors.map((d) => (
+          <button
+            key={d.id}
+            type="button"
+            onClick={() => {
+              playTapClick(db.settings.muted);
+              setSelectedDetector(d.id);
+            }}
+            className={`text-left rounded-xl p-2 border text-[11px] cursor-pointer transition ${
+              d.status === 'critical'
+                ? 'bg-red-950/90 border-red-400'
+                : d.status === 'warning'
+                ? 'bg-amber-950/80 border-amber-400'
+                : 'bg-slate-900 border-slate-700 hover:border-teal-400'
+            }`}
+          >
+            <div className="text-[10px] font-bold text-slate-300 truncate">{d.shortLabel}</div>
+            <div className="font-mono text-sm font-extrabold text-white tabular-nums">
+              {d.value} <span className="text-[10px] font-normal text-slate-400">{d.unit}</span>
             </div>
-          ))}
+          </button>
+        ))}
+      </div>
+
+      {activeItem && (
+        <div className="fixed inset-0 z-50 bg-slate-950/90 flex items-center justify-center p-3">
+          <div className="w-full max-w-[230px] rounded-2xl bg-slate-900 border-2 border-teal-400 p-3 text-white space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black text-teal-300">{activeItem.shortLabel}</span>
+              <button
+                type="button"
+                onClick={() => setSelectedDetector(null)}
+                className="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <div className="font-mono text-base font-black">
+              {activeItem.value} {activeItem.unit}
+            </div>
+            <div className="text-[11px] font-bold text-slate-300">
+              Safe range: {activeItem.safeRange}
+            </div>
+            <button
+              type="button"
+              onClick={() => setSelectedDetector(null)}
+              className="w-full py-1.5 rounded-xl bg-teal-400 text-slate-950 font-black text-xs cursor-pointer"
+            >
+              Quit
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -192,7 +202,7 @@ export const ClockAppView: React.FC<EnvToolAppProps> = ({ db, onUpdateDb }) => {
           {db.alarms.map((al) => (
             <div key={al.id} className="rounded-xl bg-slate-900 border border-slate-700 p-2.5 flex items-center justify-between">
               <div>
-                <div className="font-mono text-base font-extrabold">{al.timeUtc} UTC</div>
+                <div className="font-mono text-base font-extrabold">{al.timeUtc}</div>
                 <div className="text-[11px] text-slate-300">{al.label}</div>
               </div>
               <button
@@ -224,7 +234,7 @@ export const ClockAppView: React.FC<EnvToolAppProps> = ({ db, onUpdateDb }) => {
                   {
                     id: `al-${Date.now().toString(36)}`,
                     timeUtc: '18:00',
-                    label: 'Hydration & Bone Check',
+                    label: 'Drink Water Reminder',
                     enabled: true,
                   },
                 ],
@@ -232,7 +242,7 @@ export const ClockAppView: React.FC<EnvToolAppProps> = ({ db, onUpdateDb }) => {
             }
             className="w-full py-2 rounded-xl bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center gap-1 cursor-pointer"
           >
-            <Bell className="w-3.5 h-3.5" /> Add 18:00 UTC Alarm
+            <Bell className="w-3.5 h-3.5" /> Add 18:00 Alarm
           </button>
         </div>
       )}
@@ -291,10 +301,10 @@ export const MusicAppView: React.FC<EnvToolAppProps> = ({ db }) => {
 
   return (
     <div className="space-y-2.5 text-white">
-      <div className="rounded-2xl bg-rose-950/70 border border-rose-500/40 p-2.5 flex items-center justify-between">
+      <div className="rounded-2xl bg-rose-950/75 border border-rose-500/40 p-2.5 flex items-center justify-between">
         <div>
-          <div className="text-[11px] font-bold uppercase text-rose-300">Offline Synth Audio</div>
-          <div className="text-[11px] text-slate-300">Zero internet required</div>
+          <div className="text-[11px] font-bold uppercase text-rose-300">Space Music</div>
+          <div className="text-[11px] text-slate-200">Tap a song to relax</div>
         </div>
         {playingId && (
           <div className="flex gap-0.5 items-end h-4">
@@ -319,7 +329,7 @@ export const MusicAppView: React.FC<EnvToolAppProps> = ({ db }) => {
             <div className="min-w-0">
               <div className="text-xs font-extrabold truncate">{track.title}</div>
               <div className="text-[10px] text-slate-400 truncate">
-                {track.subtitle} · {track.bpm} bpm
+                {track.bpm} bpm
               </div>
             </div>
             <button
@@ -352,7 +362,6 @@ export const CalculatorAppView: React.FC = () => {
     if (key === '=') {
       try {
         const clean = expr.replace(/[^0-9+\-*/.%()]/g, '');
-        // Safe arithmetic evaluation via Function constructor restricted to digits/operators
         const result = Function(`"use strict"; return (${clean});`)();
         setExpr(Number.isFinite(result) ? String(Number(result.toFixed(4))) : 'Err');
       } catch {
@@ -410,8 +419,8 @@ export const NotepadAppView: React.FC<EnvToolAppProps> = ({ db, onUpdateDb }) =>
       notes: [
         {
           id: `note-${Date.now().toString(36)}`,
-          title: title.trim() || 'Mission Log Note',
-          body: body.trim() || 'Recorded offline on Aegis Watch.',
+          title: title.trim() || 'Daily Note',
+          body: body.trim() || 'Saved on watch.',
           updatedAtUtc: new Date().toISOString(),
         },
         ...prev.notes,
@@ -428,21 +437,21 @@ export const NotepadAppView: React.FC<EnvToolAppProps> = ({ db, onUpdateDb }) =>
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Note title..."
+          placeholder="Title..."
           className="w-full bg-slate-800 text-white text-xs rounded-lg px-2 py-1.5 border border-slate-600"
         />
         <textarea
           rows={2}
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          placeholder="Offline crew note..."
+          placeholder="Write a quick note..."
           className="w-full bg-slate-800 text-white text-xs rounded-lg px-2 py-1.5 border border-slate-600"
         />
         <button
           type="submit"
           className="w-full py-1.5 rounded-lg bg-amber-400 text-slate-950 font-black text-xs cursor-pointer"
         >
-          Save Note Offline
+          Save Note
         </button>
       </form>
 
@@ -498,8 +507,8 @@ export const CalendarAppView: React.FC<EnvToolAppProps> = ({ db, onUpdateDb }) =
 
   return (
     <div className="space-y-2.5 text-white">
-      <div className="rounded-2xl bg-blue-950/70 border border-blue-500/40 p-2.5 text-[11px] font-bold text-blue-200">
-        UTC-0 Mission Timeline ({db.calendar.filter((c) => c.done).length}/{db.calendar.length} Done)
+      <div className="rounded-2xl bg-blue-950/75 border border-blue-500/40 p-2.5 text-[11px] font-bold text-blue-200">
+        Today&apos;s Plan ({db.calendar.filter((c) => c.done).length}/{db.calendar.length} Done)
       </div>
 
       <form onSubmit={addEvent} className="flex gap-1.5">
@@ -507,7 +516,7 @@ export const CalendarAppView: React.FC<EnvToolAppProps> = ({ db, onUpdateDb }) =
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Add UTC event..."
+          placeholder="Add plan..."
           className="flex-1 min-w-0 bg-slate-800 text-white text-xs rounded-lg px-2 py-1.5 border border-slate-600"
         />
         <button
@@ -534,7 +543,7 @@ export const CalendarAppView: React.FC<EnvToolAppProps> = ({ db, onUpdateDb }) =
           >
             <div>
               <div className="font-mono text-[10px] text-blue-300">
-                {ev.timeUtc} UTC · {ev.category}
+                {ev.timeUtc} · {ev.category}
               </div>
               <div className={`text-xs font-bold ${ev.done ? 'line-through text-slate-500' : 'text-white'}`}>
                 {ev.title}
@@ -600,7 +609,7 @@ export const WorkoutAppView: React.FC<EnvToolAppProps> = ({
           durationMin: minutes,
           calories,
           stepsAdded,
-          completedAtUtc: new Date().toISOString(),
+          completedAtUtc: new Date().toISOString().slice(11, 16),
         },
         ...prev.workouts,
       ],
@@ -617,24 +626,24 @@ export const WorkoutAppView: React.FC<EnvToolAppProps> = ({
         </div>
       ) : isRunning ? (
         <div className="rounded-2xl bg-orange-950 border border-orange-400 p-3 text-center space-y-2">
-          <div className="text-xs font-bold text-orange-300">{selectedType} Active</div>
+          <div className="text-xs font-bold text-orange-300">{selectedType}</div>
           <div className="font-mono text-3xl font-extrabold tabular-nums">
             {String(Math.floor(activeSec / 60)).padStart(2, '0')}:{String(activeSec % 60).padStart(2, '0')}
           </div>
-          <div className="text-[11px] font-mono text-slate-300">
-            HR {inputs.heartRate} bpm · False BP alarm suppressed
+          <div className="text-[11px] font-bold text-emerald-300">
+            Heart {inputs.heartRate} bpm · Alarm paused
           </div>
           <button
             type="button"
             onClick={finishWorkout}
             className="w-full py-2 rounded-xl bg-emerald-500 text-slate-950 font-black text-xs cursor-pointer"
           >
-            Finish & Log Session
+            Finish Workout
           </button>
         </div>
       ) : (
         <div className="rounded-2xl bg-slate-900 border border-slate-700 p-2.5 space-y-2">
-          <div className="text-[11px] font-bold text-orange-300 uppercase">Launch Countermeasure</div>
+          <div className="text-[11px] font-bold text-orange-300 uppercase">Pick Workout</div>
           {(['ARED Squats', 'Indoor Treadmill', 'Cycle Ergometer'] as const).map((t) => (
             <button
               key={t}
@@ -652,14 +661,14 @@ export const WorkoutAppView: React.FC<EnvToolAppProps> = ({
             onClick={() => setCountdown(3)}
             className="w-full py-2 rounded-xl bg-orange-500 hover:bg-orange-400 text-slate-950 font-black text-xs cursor-pointer"
           >
-            Start (3, 2, 1, GO!)
+            Start Workout
           </button>
         </div>
       )}
 
       <div className="space-y-1">
-        <div className="text-[10px] font-bold uppercase text-slate-400">Walked & Workout Log</div>
-        {db.workouts.slice(0, 4).map((w) => (
+        <div className="text-[10px] font-bold uppercase text-slate-400">Recent Workouts</div>
+        {db.workouts.slice(0, 3).map((w) => (
           <div key={w.id} className="rounded-xl bg-slate-900 border border-slate-800 px-2.5 py-1.5 flex justify-between text-[11px]">
             <span className="font-bold text-slate-200">{w.type}</span>
             <span className="font-mono text-orange-300">+{w.stepsAdded} st · {w.durationMin}m</span>

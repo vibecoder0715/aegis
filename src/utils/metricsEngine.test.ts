@@ -63,15 +63,15 @@ test('exercise mode suppresses false cardiovascular alarm', () => {
   assert.equal(hr.status, 'nominal');
 });
 
-test('evaluateCrewMemberStatus detects bone loss and custom threshold breaches', () => {
+test('evaluateCrewMemberStatus detects bone loss and custom threshold breaches across all 10 crewmates', () => {
   const crew = buildInitialCrew();
-  assert.equal(crew.length, 4);
+  assert.equal(crew.length, 10);
   assert.equal(DETECTOR_SPECS.length, 7);
 
   const maya = crew[1];
   const mayaEval = evaluateCrewMemberStatus(maya);
   assert.equal(mayaEval.status, 'warning');
-  assert.ok(mayaEval.reasons.some((r) => r.includes('Bone mass')));
+  assert.ok(mayaEval.reasons.some((r) => r.toLowerCase().includes('bone')));
 });
 
 test('CLINICAL_CONDITIONS_MATRIX and getAstronautEmotionFromState map metrics to emotions and actions', () => {

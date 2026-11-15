@@ -1,41 +1,25 @@
 import {
+  buildInitialCrew,
+  computeBoneMetricsFromSoundWave,
   DEFAULT_SENSOR_INPUTS,
   LiveSensorInputs,
-  computeBoneMetricsFromSoundWave,
-  getAstronautEmotionFromState,
   SituationId,
 } from '../src/utils/metricsEngine';
 import {
   DEFAULT_EXTRA_ENV_CONTROLS,
   ExtraEnvironmentControls,
-  buildEnvironmentDetectors,
+  generateDynamicEnvironmentJson,
 } from './environmentDetectors';
-import { NASA_CSA_KNOWLEDGE } from './nasaCsaKnowledge';
+import {
+  BACKEND_WATCH_HEALTH_AND_RISKS_CATALOG,
+  evaluateWatchSystemRisks,
+  grepNasaCsaBibliography,
+  NasaCsaBibEntry,
+} from './nasaCsaKnowledge';
+import type { WatchAppId } from './WatchAppIcons';
+export type { WatchAppId };
 
-export type WatchAppId =
-  | 'sleep'
-  | 'nutritions'
-  | 'emotions'
-  | 'clock'
-  | 'music'
-  | 'camera'
-  | 'gallery'
-  | 'calculator'
-  | 'environment'
-  | 'health_insights'
-  | 'workout'
-  | 'aegis_buff'
-  | 'notepad'
-  | 'recorder'
-  | 'aegis_ai'
-  | 'calendar'
-  | 'pulse_wave'
-  | 'spo2'
-  | 'radiomeasure'
-  | 'viability'
-  | 'mini_games';
-
-export type ShortcutActionId =
+export type SystemShortcutId =
   | 'flashlight'
   | 'settings'
   | 'find_suit'
@@ -48,117 +32,133 @@ export type ShortcutActionId =
   | 'env_quick'
   | 'games_quick';
 
-export interface SleepStagesSummary {
-  utcDate: string;
-  bedtimeUtc: string;
-  wakeUtc: string;
-  remMinutes: number;
-  deepMinutes: number;
-  lightMinutes: number;
-  awakeMinutes: number;
-  score: number;
-  segments: Array<{
-    stage: 'Awake' | 'REM' | 'Light' | 'Deep';
-    startUtc: string;
-    endUtc: string;
-    minutes: number;
-  }>;
-  recommendation: string;
+export type ShortcutActionId = SystemShortcutId | `app:${WatchAppId}`;
+
+export const ALL_SHORTCUT_META: Record<
+  SystemShortcutId,
+  { shortLabel: string; description: string }
+> = {
+  flashlight: { shortLabel: 'Torch', description: 'Bright white screen torch' },
+  settings: { shortLabel: 'Settings', description: 'Watch settings' },
+  find_suit: { shortLabel: 'Ping Suit', description: 'Send suit signal' },
+  alarms: { shortLabel: 'Alarms', description: 'Open alarms' },
+  dnd: { shortLabel: 'Quiet', description: 'Silence warnings' },
+  auto_brightness: { shortLabel: 'Auto Sun', description: 'Auto screen light' },
+  mute_audio: { shortLabel: 'Mute', description: 'Mute watch sound' },
+  aegis_ai: { shortLabel: 'AegisAI', description: 'Ask AegisAI' },
+  spo2_quick: { shortLabel: 'SpO2', description: 'Blood oxygen' },
+  env_quick: { shortLabel: 'Air', description: 'Room air check' },
+  games_quick: { shortLabel: 'Games', description: 'Mini games' },
+};
+
+export type NotificationFilterMode = 'all' | 'health' | 'environment' | 'peer';
+
+export interface WatchSettings {
+  brightness: number; // 40..100
+  muted: boolean;
+  dnd: boolean;
+  doNotDisturb: boolean;
+  torchOn: boolean;
+  flashlightOn: boolean;
+  autoBrightness: boolean;
+  offlineSimulated: boolean;
+  beautifyCamera: boolean;
+  smartDetectorMode: boolean;
+  batteryPct: number;
+  notificationFilter: NotificationFilterMode;
+  appsPerPage: number; // 0 = All apps on 1 page, or 6 / 4 per page
 }
 
-export interface MealEntry {
+export interface SleepStageBlock {
+  stage: 'Deep' | 'Core' | 'REM' | 'Awake';
+  startUtc: string;
+  endUtc: string;
+  minutes: number;
+  color: string;
+}
+
+export interface SleepSummary {
+  totalHours: number;
+  sleepScore: number;
+  bedtimeUtc: string;
+  wakeUtc: string;
+  stages: SleepStageBlock[];
+  guidance: string[];
+}
+
+export interface MealLogItem {
   id: string;
-  slot: 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
   name: string;
   calories: number;
-  proteinG: number;
   calciumMg: number;
   sodiumMg: number;
-  potassiumMg: number;
-  vitDIu: number;
+  waterMl: number;
   loggedAtUtc: string;
 }
 
-export interface WatchAlarm {
+export interface WorkoutLogItem {
   id: string;
-  timeUtc: string;
-  label: string;
-  enabled: boolean;
-}
-
-export interface WorkoutRecord {
-  id: string;
-  type: 'ARED Squats' | 'Indoor Treadmill' | 'Cycle Ergometer' | 'EVA Mobility';
+  type: 'ARED Squats' | 'Indoor Treadmill' | 'Cycle Ergometer';
   durationMin: number;
   calories: number;
   stepsAdded: number;
   completedAtUtc: string;
 }
 
-export interface WatchNote {
+export interface WatchNoteItem {
   id: string;
   title: string;
   body: string;
   updatedAtUtc: string;
 }
 
-export interface MissionCalendarEvent {
+export interface CalendarEventItem {
   id: string;
   timeUtc: string;
   title: string;
-  category: 'Exercise' | 'Science' | 'Medical' | 'EVA';
+  category: 'EVA' | 'Exercise' | 'Medical' | 'Meal' | 'Rest';
   done: boolean;
 }
 
-export type TaskDifficulty = 'easy' | 'medium' | 'hard';
+export interface WatchAlarmItem {
+  id: string;
+  timeUtc: string;
+  label: string;
+  enabled: boolean;
+}
 
 export interface DailyBuffTask {
   id: string;
   title: string;
-  difficulty: TaskDifficulty;
+  category: 'Bone' | 'Cardio' | 'Sleep' | 'Nutrition' | 'Radiation' | 'Mind';
+  difficulty: 'easy' | 'medium' | 'hard';
   xpReward: number;
   pointsReward: number;
   completed: boolean;
   nasaRef: string;
 }
 
-export interface PlanetDecoratorCatalogItem {
+export interface PlanetDecoratorItem {
   id: string;
   name: string;
   costPoints: number;
+  svgType:
+    | 'solar_tree'
+    | 'hydro_dome'
+    | 'aurora_ring'
+    | 'mini_rover'
+    | 'crystal_spire'
+    | 'starlight_pond'
+    | 'saturn_arch'
+    | 'beacon_tower';
   description: string;
-  defaultX: number;
-  defaultY: number;
 }
 
-export interface PlacedPlanetItem {
+export interface PlacedPlanetDecoration {
   instanceId: string;
   itemId: string;
-  x: number; // 0..100 percentage inside planet dome
-  y: number; // 0..100 percentage
-}
-
-export interface WatchSettings {
-  brightness: number; // 30..100
-  autoBrightness: boolean;
-  doNotDisturb: boolean;
-  muted: boolean;
-  flashlightOn: boolean;
-  batteryPct: number;
-  beautifyCamera: boolean;
-  smartDetectorMode: boolean;
-  offlineSimulated: boolean;
-}
-
-export interface WatchMediaItem {
-  id: string;
-  visitorId: string;
-  kind: 'photo' | 'video' | 'audio';
-  title: string;
-  createdAtUtc: string;
-  dataUrl: string; // image/* data URL or audio/video data URL
-  smartTag?: string;
-  durationSec?: number;
+  x: number; // 15..85 %
+  y: number; // 15..85 %
 }
 
 export interface AiChatMessage {
@@ -169,242 +169,424 @@ export interface AiChatMessage {
   mode: 'gemini' | 'offline-db';
 }
 
-export interface VisitorWatchDatabase {
-  visitorId: string;
-  schemaVersion: number;
-  lastUpdatedUtc: string;
-  cumulativeRadiationMSv: number;
-  hourlySteps: Array<{ hourUtc: string; steps: number }>;
-  sleep: SleepStagesSummary;
-  meals: MealEntry[];
-  alarms: WatchAlarm[];
-  workouts: WorkoutRecord[];
-  notes: WatchNote[];
-  calendar: MissionCalendarEvent[];
-  shortcuts: ShortcutActionId[];
-  settings: WatchSettings;
-  extraEnv: ExtraEnvironmentControls;
-  buffDateUtc: string;
-  xp: number;
-  level: number;
-  aegisPoints: number;
-  dailyTasks: DailyBuffTask[];
-  unlockedPlanetItems: string[];
-  placedPlanetItems: PlacedPlanetItem[];
-  highScores: Record<string, number>;
-  aiHistory: AiChatMessage[];
+export interface PlanetSkinOption {
+  id: string;
+  name: string;
+  costPoints: number;
+  baseColor: string;
+  continentColor: string;
+  oceanColor: string;
+  atmosphereColor: string;
+  hasRing?: boolean;
+  ringColor?: string;
+  textureStyle: 'terra' | 'mars' | 'gas' | 'ice' | 'nebula' | 'coral';
 }
 
-const VISITOR_ID_KEY = 'aegis_visitor_id_v1';
-const memoryFallbackStore = new Map<string, string>();
-
-export const PLANET_DECORATORS: PlanetDecoratorCatalogItem[] = [
-  { id: 'bio_dome', name: 'Bio-Dome', costPoints: 30, description: 'Greenhouse glass pod', defaultX: 34, defaultY: 42 },
-  { id: 'lunar_tree', name: 'Moon Sprout', costPoints: 20, description: 'Hydroponic blossom tree', defaultX: 64, defaultY: 40 },
-  { id: 'mini_rover', name: 'Scout Rover', costPoints: 40, description: 'Cute surface explorer', defaultX: 50, defaultY: 64 },
-  { id: 'solar_wing', name: 'Solar Wing', costPoints: 25, description: 'Clean orbit power array', defaultX: 24, defaultY: 58 },
-  { id: 'comms_dish', name: 'UWB Beacon', costPoints: 35, description: 'Crew mesh relay tower', defaultX: 74, defaultY: 56 },
-  { id: 'astro_buddy', name: 'Astro Buddy', costPoints: 50, description: 'Mini waving crew figure', defaultX: 48, defaultY: 46 },
-  { id: 'campfire', name: 'Warm Camp', costPoints: 25, description: 'Cozy morale beacon', defaultX: 60, defaultY: 68 },
-  { id: 'observatory', name: 'Star Lens', costPoints: 45, description: 'Deep-space star dome', defaultX: 36, defaultY: 68 },
-  { id: 'water_pod', name: 'Shield Tank', costPoints: 35, description: 'Hydrogen radiation shield', defaultX: 70, defaultY: 32 },
-  { id: 'star_flag', name: 'Aegis Flag', costPoints: 15, description: 'Orbital checkpoint banner', defaultX: 44, defaultY: 28 },
+export const PLANET_SKINS: PlanetSkinOption[] = [
+  {
+    id: 'terra_prime',
+    name: 'Lush Terra',
+    costPoints: 0,
+    baseColor: '#0EA5E9',
+    continentColor: '#10B981',
+    oceanColor: '#0369A1',
+    atmosphereColor: '#38BDF8',
+    textureStyle: 'terra',
+  },
+  {
+    id: 'crimson_mars',
+    name: 'Red Mars',
+    costPoints: 50,
+    baseColor: '#DC2626',
+    continentColor: '#F97316',
+    oceanColor: '#991B1B',
+    atmosphereColor: '#FB923C',
+    textureStyle: 'mars',
+  },
+  {
+    id: 'golden_saturn',
+    name: 'Gold Ring',
+    costPoints: 75,
+    baseColor: '#F59E0B',
+    continentColor: '#FDE047',
+    oceanColor: '#B45309',
+    atmosphereColor: '#FBBF24',
+    hasRing: true,
+    ringColor: '#FDE68A',
+    textureStyle: 'gas',
+  },
+  {
+    id: 'crystal_neptune',
+    name: 'Ice World',
+    costPoints: 90,
+    baseColor: '#06B6D4',
+    continentColor: '#E0F2FE',
+    oceanColor: '#155E75',
+    atmosphereColor: '#67E8F9',
+    textureStyle: 'ice',
+  },
+  {
+    id: 'amethyst_nebula',
+    name: 'Star Purple',
+    costPoints: 110,
+    baseColor: '#8B5CF6',
+    continentColor: '#EC4899',
+    oceanColor: '#4C1D95',
+    atmosphereColor: '#C084FC',
+    hasRing: true,
+    ringColor: '#F472B6',
+    textureStyle: 'nebula',
+  },
+  {
+    id: 'rose_sakura',
+    name: 'Coral World',
+    costPoints: 130,
+    baseColor: '#F43F5E',
+    continentColor: '#2DD4BF',
+    oceanColor: '#BE123C',
+    atmosphereColor: '#FDA4AF',
+    textureStyle: 'coral',
+  },
 ];
 
-export const ALL_SHORTCUT_META: Record<
-  ShortcutActionId,
-  { label: string; shortLabel: string; description: string }
-> = {
-  flashlight: { label: 'Torch Light', shortLabel: 'Torch', description: 'Bright white screen flashlight' },
-  settings: { label: 'Watch Settings', shortLabel: 'Settings', description: 'Brightness, audio & offline mode' },
-  find_suit: { label: 'Ping Suit / Crew', shortLabel: 'Ping', description: 'Emit 6.5 GHz UWB locate chime' },
-  alarms: { label: 'Alarms & Timer', shortLabel: 'Alarms', description: 'Open Clock UTC-0 alarms' },
-  dnd: { label: 'Do Not Disturb', shortLabel: 'DND', description: 'Silence non-critical notifications' },
-  auto_brightness: { label: 'Auto Brightness', shortLabel: 'Auto', description: 'Adapt watch OLED brightness' },
-  mute_audio: { label: 'Mute Watch', shortLabel: 'Mute', description: 'Toggle chime sound effects' },
-  aegis_ai: { label: 'AegisAI Check', shortLabel: 'AegisAI', description: 'Open isolated AI triage' },
-  spo2_quick: { label: 'Quick SpO2', shortLabel: 'SpO2', description: 'Run optical oxygen scan' },
-  env_quick: { label: '12 Env Sensors', shortLabel: 'Env 12', description: 'Inspect cabin & CANS neutron sensor' },
-  games_quick: { label: '10 Mini Games', shortLabel: 'Games', description: 'Play cognitive reflex games' },
-};
-
-export function todayUtcDate(): string {
-  return new Date().toISOString().slice(0, 10);
+export interface VisitorWatchDatabase {
+  visitorId: string;
+  createdAtUtc: string;
+  updatedAtUtc: string;
+  settings: WatchSettings;
+  extraEnv: ExtraEnvironmentControls;
+  xp: number;
+  aegisPoints: number;
+  dailyTasks: DailyBuffTask[];
+  placedPlanetItems: PlacedPlanetDecoration[];
+  activePlanetId?: string;
+  unlockedPlanets?: string[];
+  sleep: SleepSummary;
+  meals: MealLogItem[];
+  waterIntakeMl: number;
+  workouts: WorkoutLogItem[];
+  notes: WatchNoteItem[];
+  calendar: CalendarEventItem[];
+  alarms: WatchAlarmItem[];
+  highScores: Record<string, number>;
+  aiHistory: AiChatMessage[];
+  shortcuts: ShortcutActionId[];
+  selectedMood?: string;
 }
 
-/**
- * Generates all 14 daily Aegis Buff! tasks for a specific UTC date across Easy, Medium & Hard difficulty.
- */
-export function generate14DailyTasks(dateStr = todayUtcDate()): DailyBuffTask[] {
-  const templates: Array<Omit<DailyBuffTask, 'id' | 'completed'>> = [
-    { title: 'Check Morning UTC-0 Vitals', difficulty: 'easy', xpReward: 20, pointsReward: 15, nasaRef: 'NASA Standard Measures' },
-    { title: 'Drink 500mL Isotonic Water', difficulty: 'easy', xpReward: 20, pointsReward: 15, nasaRef: 'Plasma Hydration Rule' },
-    { title: 'Run 15s SpO2 Finger Scan', difficulty: 'easy', xpReward: 25, pointsReward: 15, nasaRef: 'Hypobaric Hypoxia Check' },
-    { title: 'Wipe & Inspect Tibial Shin Pad', difficulty: 'easy', xpReward: 25, pointsReward: 18, nasaRef: 'Acoustic Sonometry' },
-    { title: 'Inspect CSA CANS Neutron Dose', difficulty: 'easy', xpReward: 25, pointsReward: 18, nasaRef: 'CSA CANS (~30% ISS Dose)' },
-    { title: 'Log All 3 Balanced Meals', difficulty: 'medium', xpReward: 40, pointsReward: 30, nasaRef: 'Negative Energy Balance' },
-    { title: 'Reach 8,000+ Active Steps Equiv.', difficulty: 'medium', xpReward: 45, pointsReward: 32, nasaRef: 'Bone & Muscle Loading' },
-    { title: 'Run Pulse Wave Rhythm Sweep', difficulty: 'medium', xpReward: 40, pointsReward: 28, nasaRef: 'Atrial Remodeling Check' },
-    { title: 'Achieve >= 7.0h Quality Sleep', difficulty: 'medium', xpReward: 50, pointsReward: 35, nasaRef: 'Circadian UTC-0 Hygiene' },
-    { title: 'Play 1 Cognitive Reflex Game', difficulty: 'medium', xpReward: 35, pointsReward: 25, nasaRef: 'HRP Piloting Vigilance' },
-    { title: 'Complete 45m ARED Squat Block', difficulty: 'hard', xpReward: 75, pointsReward: 55, nasaRef: 'Prevent 1%/mo Bone Loss' },
-    { title: 'Keep Sodium < 2,000mg + Ca > 1,100mg', difficulty: 'hard', xpReward: 70, pointsReward: 50, nasaRef: 'SANS & Calcium Protection' },
-    { title: 'Full 6-Region Viability Body Scan', difficulty: 'hard', xpReward: 65, pointsReward: 45, nasaRef: 'NASA CIPHER Multi-System' },
-    { title: 'Tend Hydroponic Microgreens / Note', difficulty: 'hard', xpReward: 60, pointsReward: 45, nasaRef: 'Isolation Morale Boost' },
-  ];
+export const PLANET_DECORATORS: PlanetDecoratorItem[] = [
+  {
+    id: 'solar_tree',
+    name: 'Pine Tree',
+    costPoints: 40,
+    svgType: 'solar_tree',
+    description: 'Green tree for your planet.',
+  },
+  {
+    id: 'hydro_dome',
+    name: 'Water Dome',
+    costPoints: 65,
+    svgType: 'hydro_dome',
+    description: 'Clean water dome.',
+  },
+  {
+    id: 'aurora_ring',
+    name: 'Glow Ring',
+    costPoints: 90,
+    svgType: 'aurora_ring',
+    description: 'Bright sky ring.',
+  },
+  {
+    id: 'mini_rover',
+    name: 'Mini Rover',
+    costPoints: 110,
+    svgType: 'mini_rover',
+    description: 'Cute space buggy.',
+  },
+  {
+    id: 'crystal_spire',
+    name: 'Pink Crystal',
+    costPoints: 80,
+    svgType: 'crystal_spire',
+    description: 'Shiny crystal rock.',
+  },
+  {
+    id: 'starlight_pond',
+    name: 'Star Pond',
+    costPoints: 75,
+    svgType: 'starlight_pond',
+    description: 'Calm blue pond.',
+  },
+  {
+    id: 'beacon_tower',
+    name: 'Light Tower',
+    costPoints: 95,
+    svgType: 'beacon_tower',
+    description: 'Guides friends home.',
+  },
+];
 
-  return templates.map((t, idx) => ({
-    ...t,
-    id: `task-${dateStr}-${idx + 1}`,
+export const INITIAL_DAILY_BUFF_TASKS: DailyBuffTask[] = [
+  {
+    id: 'task-1',
+    title: 'Drink 500mL water morning',
+    category: 'Nutrition',
+    difficulty: 'easy',
+    xpReward: 30,
+    pointsReward: 20,
+    completed: true,
+    nasaRef: 'Keeps body water full',
+  },
+  {
+    id: 'task-2',
+    title: 'Do 45m squat workout',
+    category: 'Bone',
+    difficulty: 'hard',
+    xpReward: 85,
+    pointsReward: 55,
     completed: false,
-  }));
-}
+    nasaRef: 'Keeps leg bones strong',
+  },
+  {
+    id: 'task-3',
+    title: 'Take Vitamin D3 & Calcium',
+    category: 'Nutrition',
+    difficulty: 'easy',
+    xpReward: 35,
+    pointsReward: 25,
+    completed: true,
+    nasaRef: 'Helps bone health',
+  },
+  {
+    id: 'task-4',
+    title: 'Check shin bone sensor',
+    category: 'Bone',
+    difficulty: 'medium',
+    xpReward: 55,
+    pointsReward: 35,
+    completed: false,
+    nasaRef: 'Quick bone wave check',
+  },
+  {
+    id: 'task-5',
+    title: 'Walk 30m on treadmill',
+    category: 'Cardio',
+    difficulty: 'medium',
+    xpReward: 60,
+    pointsReward: 40,
+    completed: false,
+    nasaRef: 'Good for your heart',
+  },
+  {
+    id: 'task-6',
+    title: 'Breathe slowly for 5m',
+    category: 'Cardio',
+    difficulty: 'easy',
+    xpReward: 30,
+    pointsReward: 20,
+    completed: false,
+    nasaRef: 'Lowers blood pressure',
+  },
+  {
+    id: 'task-7',
+    title: 'Use bright light 20m',
+    category: 'Sleep',
+    difficulty: 'easy',
+    xpReward: 35,
+    pointsReward: 25,
+    completed: false,
+    nasaRef: 'Wakes up your body',
+  },
+  {
+    id: 'task-8',
+    title: 'Check radiation badge',
+    category: 'Radiation',
+    difficulty: 'medium',
+    xpReward: 50,
+    pointsReward: 35,
+    completed: false,
+    nasaRef: 'Checks space safety',
+  },
+  {
+    id: 'task-9',
+    title: 'Keep salt under 2000mg',
+    category: 'Nutrition',
+    difficulty: 'medium',
+    xpReward: 55,
+    pointsReward: 35,
+    completed: false,
+    nasaRef: 'Protects your eyes',
+  },
+  {
+    id: 'task-10',
+    title: 'Write a short happy note',
+    category: 'Mind',
+    difficulty: 'easy',
+    xpReward: 30,
+    pointsReward: 20,
+    completed: false,
+    nasaRef: 'Boosts your daily mood',
+  },
+  {
+    id: 'task-11',
+    title: 'Check air filter fan',
+    category: 'Cardio',
+    difficulty: 'medium',
+    xpReward: 45,
+    pointsReward: 30,
+    completed: false,
+    nasaRef: 'Keeps room air fresh',
+  },
+  {
+    id: 'task-12',
+    title: 'Play a brain mini game',
+    category: 'Mind',
+    difficulty: 'easy',
+    xpReward: 35,
+    pointsReward: 25,
+    completed: false,
+    nasaRef: 'Sharpens focus and speed',
+  },
+  {
+    id: 'task-13',
+    title: 'Drink 2,400mL water today',
+    category: 'Nutrition',
+    difficulty: 'medium',
+    xpReward: 60,
+    pointsReward: 40,
+    completed: false,
+    nasaRef: 'Prevents kidney stones',
+  },
+  {
+    id: 'task-14',
+    title: 'Dim lights before sleep',
+    category: 'Sleep',
+    difficulty: 'easy',
+    xpReward: 40,
+    pointsReward: 25,
+    completed: false,
+    nasaRef: 'Helps deep night sleep',
+  },
+];
 
 export function computeLevelFromXp(xp: number): {
   level: number;
-  title: string;
   currentLevelXp: number;
-  nextLevelTargetXp: number;
+  nextLevelXp: number;
   progressPct: number;
+  title: string;
 } {
-  const safeXp = Math.max(0, Math.floor(xp));
-  const perLevel = 150;
-  const level = Math.floor(safeXp / perLevel) + 1;
-  const currentLevelXp = safeXp % perLevel;
-  const progressPct = Math.round((currentLevelXp / perLevel) * 100);
+  const step = 150;
+  const level = Math.max(1, Math.floor(xp / step) + 1);
+  const currentLevelXp = xp % step;
+  const progressPct = Math.min(100, Math.round((currentLevelXp / step) * 100));
   const titles = [
-    'Cadet',
-    'Orbital Specialist',
-    'Lunar Pioneer',
-    'Deep-Space Surgeon',
-    'Mars Vanguard',
-    'Aegis Commander',
+    'Space Rookie',
+    'Star Walker',
+    'Health Ranger',
+    'Orbit Guardian',
+    'Solar Champion',
+    'Aegis Hero',
   ];
   const title = titles[Math.min(titles.length - 1, level - 1)];
+  return { level, currentLevelXp, nextLevelXp: step, progressPct, title };
+}
+
+export function buildSleepSummary(sleepHours: number): SleepSummary {
+  const totalMin = Math.round(sleepHours * 60);
+  const deepMin = Math.round(totalMin * 0.21);
+  const remMin = Math.round(totalMin * 0.24);
+  const awakeMin = Math.max(12, Math.round(totalMin * 0.06));
+  const coreMin = Math.max(60, totalMin - deepMin - remMin - awakeMin);
+  const sleepScore = Math.max(55, Math.min(98, Math.round((sleepHours / 8.0) * 90)));
+
   return {
-    level,
-    title,
-    currentLevelXp,
-    nextLevelTargetXp: perLevel,
-    progressPct,
+    totalHours: Number(sleepHours.toFixed(1)),
+    sleepScore,
+    bedtimeUtc: '22:00',
+    wakeUtc: '05:25',
+    stages: [
+      { stage: 'Core', startUtc: '22:00', endUtc: '23:15', minutes: Math.round(coreMin * 0.4), color: '#38BDF8' },
+      { stage: 'Deep', startUtc: '23:15', endUtc: '00:50', minutes: deepMin, color: '#6366F1' },
+      { stage: 'Core', startUtc: '00:50', endUtc: '03:10', minutes: Math.round(coreMin * 0.6), color: '#38BDF8' },
+      { stage: 'REM', startUtc: '03:10', endUtc: '05:05', minutes: remMin, color: '#A855F7' },
+      { stage: 'Awake', startUtc: '05:05', endUtc: '05:25', minutes: awakeMin, color: '#F59E0B' },
+    ],
+    guidance: [
+      'Dim room lights before bed.',
+      'Use bright light each morning.',
+      'Keep room cool and quiet.',
+    ],
   };
 }
+
+const VISITOR_ID_KEY = 'aegis_visitor_watch_id_v1';
+const VISITOR_DB_PREFIX = 'aegis_visitor_watch_db_v1_';
 
 export function getOrCreateVisitorId(): string {
   if (typeof window === 'undefined' || !window.localStorage) {
-    return 'node-test-visitor';
+    return 'visitor-server-test';
   }
-  let existing = window.localStorage.getItem(VISITOR_ID_KEY);
-  if (!existing) {
+  let id = window.localStorage.getItem(VISITOR_ID_KEY);
+  if (!id) {
     const rand = Math.random().toString(36).slice(2, 10);
-    existing = `crew-${Date.now().toString(36)}-${rand}`;
-    window.localStorage.setItem(VISITOR_ID_KEY, existing);
+    id = `astronaut-${Date.now().toString(36)}-${rand}`;
+    window.localStorage.setItem(VISITOR_ID_KEY, id);
   }
-  return existing;
+  return id;
 }
 
-export function buildSleepSummary(sleepHours: number): SleepStagesSummary {
-  const clamped = Math.max(3.5, Math.min(10.5, sleepHours));
-  const totalMin = Math.round(clamped * 60);
-  const remMinutes = Math.round(totalMin * 0.23);
-  const deepMinutes = Math.round(totalMin * 0.21);
-  const awakeMinutes = Math.max(8, Math.round(totalMin * 0.04));
-  const lightMinutes = Math.max(40, totalMin - remMinutes - deepMinutes - awakeMinutes);
-
-  const score = Math.max(
-    42,
-    Math.min(98, Math.round(55 + (clamped / 8) * 32 + (deepMinutes > 85 ? 8 : 0)))
-  );
-
-  let recommendation =
-    'Sleep stages balanced. Keep berth fan aimed across pillow to prevent stagnant CO2 pockets.';
-  if (clamped < 6.3) {
-    recommendation =
-      'Sleep deficit (<6.3h). Schedule 30m 480nm morning light, switch cabin to 2700K at 20:30 UTC, and log 20m power rest.';
-  } else if (deepMinutes < 75) {
-    recommendation =
-      'Deep sleep low. Check cabin noise dBA and complete ARED squats at least 4h before lights out.';
-  }
-
-  return {
-    utcDate: todayUtcDate(),
-    bedtimeUtc: '22:15',
-    wakeUtc: clamped >= 7 ? '05:39' : '04:05',
-    remMinutes,
-    deepMinutes,
-    lightMinutes,
-    awakeMinutes,
-    score,
-    segments: [
-      { stage: 'Light', startUtc: '22:15', endUtc: '23:10', minutes: Math.round(lightMinutes * 0.3) },
-      { stage: 'Deep', startUtc: '23:10', endUtc: '00:45', minutes: deepMinutes },
-      { stage: 'REM', startUtc: '00:45', endUtc: '02:05', minutes: remMinutes },
-      { stage: 'Awake', startUtc: '02:05', endUtc: '02:22', minutes: awakeMinutes },
-      { stage: 'Light', startUtc: '02:22', endUtc: clamped >= 7 ? '05:39' : '04:05', minutes: Math.round(lightMinutes * 0.7) },
-    ],
-    recommendation,
-  };
-}
-
-export function createInitialVisitorDb(visitorId = getOrCreateVisitorId()): VisitorWatchDatabase {
-  const dateStr = todayUtcDate();
+export function createInitialVisitorWatchDb(visitorId: string): VisitorWatchDatabase {
+  const now = new Date().toISOString();
   return {
     visitorId,
-    schemaVersion: 2,
-    lastUpdatedUtc: new Date().toISOString(),
-    cumulativeRadiationMSv: 28.4,
-    hourlySteps: [
-      { hourUtc: '06:00', steps: 640 },
-      { hourUtc: '08:00', steps: 1420 },
-      { hourUtc: '10:00', steps: 1980 },
-      { hourUtc: '12:00', steps: 1120 },
-      { hourUtc: '14:00', steps: 2150 },
-      { hourUtc: '16:00', steps: 1110 },
-    ],
+    createdAtUtc: now,
+    updatedAtUtc: now,
+    settings: {
+      brightness: 95,
+      muted: false,
+      dnd: false,
+      doNotDisturb: false,
+      torchOn: false,
+      flashlightOn: false,
+      autoBrightness: true,
+      offlineSimulated: false,
+      beautifyCamera: true,
+      smartDetectorMode: true,
+      batteryPct: 86,
+      notificationFilter: 'all',
+      appsPerPage: 0,
+    },
+    shortcuts: ['flashlight', 'settings', 'find_suit', 'alarms', 'dnd', 'mute_audio'],
+    extraEnv: { ...DEFAULT_EXTRA_ENV_CONTROLS },
+    xp: 215,
+    aegisPoints: 240,
+    dailyTasks: INITIAL_DAILY_BUFF_TASKS,
+    placedPlanetItems: [],
+    activePlanetId: 'terra_prime',
+    unlockedPlanets: ['terra_prime'],
     sleep: buildSleepSummary(DEFAULT_SENSOR_INPUTS.sleepHours),
     meals: [
       {
         id: 'meal-1',
-        slot: 'Breakfast',
-        name: 'Fortified Berry Oats + D3',
-        calories: 560,
-        proteinG: 24,
-        calciumMg: 410,
-        sodiumMg: 380,
-        potassiumMg: 620,
-        vitDIu: 800,
-        loggedAtUtc: `${dateStr}T06:45:00Z`,
+        name: 'Salmon, Broccoli & Egg',
+        calories: 640,
+        calciumMg: 580,
+        sodiumMg: 490,
+        waterMl: 450,
+        loggedAtUtc: '07:30',
       },
       {
         id: 'meal-2',
-        slot: 'Lunch',
-        name: 'Salmon, Kale & Quinoa Pouch',
-        calories: 780,
-        proteinG: 46,
-        calciumMg: 480,
-        sodiumMg: 640,
-        potassiumMg: 980,
-        vitDIu: 900,
-        loggedAtUtc: `${dateStr}T12:20:00Z`,
-      },
-      {
-        id: 'meal-3',
-        slot: 'Dinner',
-        name: 'Herb Tofu & Greens Ration',
-        calories: 690,
-        proteinG: 34,
-        calciumMg: 360,
-        sodiumMg: 520,
-        potassiumMg: 840,
-        vitDIu: 400,
-        loggedAtUtc: `${dateStr}T18:30:00Z`,
+        name: 'Chicken Wrap & Fruit',
+        calories: 710,
+        calciumMg: 420,
+        sodiumMg: 540,
+        waterMl: 500,
+        loggedAtUtc: '12:45',
       },
     ],
-    alarms: [
-      { id: 'al-1', timeUtc: '06:00', label: 'Wake & Shin Bone Scan', enabled: true },
-      { id: 'al-2', timeUtc: '14:30', label: 'ARED Squats Countermeasure', enabled: true },
-      { id: 'al-3', timeUtc: '21:30', label: 'Warm Light Sleep Cue', enabled: false },
-    ],
+    waterIntakeMl: 1650,
     workouts: [
       {
         id: 'wo-1',
@@ -412,342 +594,213 @@ export function createInitialVisitorDb(visitorId = getOrCreateVisitorId()): Visi
         durationMin: 45,
         calories: 340,
         stepsAdded: 1850,
-        completedAtUtc: `${dateStr}T14:30:00Z`,
+        completedAtUtc: '10:15',
       },
     ],
     notes: [
       {
         id: 'note-1',
-        title: 'Tibial Pad Dry Check',
-        body: 'Keep ultrasonic acoustic pad dry before scanning mid-shin bone sound speed.',
-        updatedAtUtc: `${dateStr}T07:10:00Z`,
+        title: 'Bone & Food Reminder',
+        body: 'Eat broccoli and egg today.',
+        updatedAtUtc: now,
       },
       {
         id: 'note-2',
-        title: 'CSA CANS Berth Map',
-        body: 'Sleeping next to potable water bags lowers secondary neutron scatter by ~18%.',
-        updatedAtUtc: `${dateStr}T09:40:00Z`,
+        title: 'Morning Walk',
+        body: 'Walk 30 minutes after breakfast.',
+        updatedAtUtc: now,
       },
     ],
     calendar: [
-      { id: 'cal-1', timeUtc: '07:00', title: 'Standard Measures Vitals', category: 'Medical', done: true },
-      { id: 'cal-2', timeUtc: '10:30', title: 'CANS Neutron Dose Check', category: 'Science', done: false },
-      { id: 'cal-3', timeUtc: '14:30', title: 'ARED Resistance 45m', category: 'Exercise', done: false },
-      { id: 'cal-4', timeUtc: '17:00', title: 'EVA Suit Seal ΔP Check', category: 'EVA', done: false },
+      { id: 'cal-1', timeUtc: '08:00', title: 'Morning Health Check', category: 'Medical', done: true },
+      { id: 'cal-2', timeUtc: '10:00', title: 'Squat & Walk Workout', category: 'Exercise', done: true },
+      { id: 'cal-3', timeUtc: '13:00', title: 'Healthy Lunch & Water', category: 'Meal', done: true },
+      { id: 'cal-4', timeUtc: '15:30', title: 'Airlock Safety Check', category: 'EVA', done: false },
+      { id: 'cal-5', timeUtc: '21:30', title: 'Dim Lights for Sleep', category: 'Rest', done: false },
     ],
-    shortcuts: ['flashlight', 'settings', 'find_suit', 'alarms', 'dnd', 'auto_brightness'],
-    settings: {
-      brightness: 92,
-      autoBrightness: true,
-      doNotDisturb: false,
-      muted: false,
-      flashlightOn: false,
-      batteryPct: 86,
-      beautifyCamera: true,
-      smartDetectorMode: true,
-      offlineSimulated: false,
+    alarms: [
+      { id: 'alm-1', timeUtc: '06:00', label: 'Morning Wake Up', enabled: true },
+      { id: 'alm-2', timeUtc: '10:00', label: 'Workout Time', enabled: true },
+      { id: 'alm-3', timeUtc: '21:30', label: 'Bedtime Reminder', enabled: false },
+    ],
+    highScores: {
+      '2048': 512,
+      piano: 28,
+      snake: 19,
+      asteroid: 340,
+      memory: 100,
+      reflex: 224,
+      tictactoe: 3,
+      simon: 7,
+      puzzle15: 42,
+      brick: 260,
     },
-    extraEnv: { ...DEFAULT_EXTRA_ENV_CONTROLS },
-    buffDateUtc: dateStr,
-    xp: 95,
-    level: 1,
-    aegisPoints: 65,
-    dailyTasks: generate14DailyTasks(dateStr),
-    unlockedPlanetItems: ['bio_dome', 'star_flag'],
-    placedPlanetItems: [
-      { instanceId: 'p-1', itemId: 'bio_dome', x: 36, y: 42 },
-      { instanceId: 'p-2', itemId: 'star_flag', x: 60, y: 34 },
-    ],
-    highScores: { '2048': 512, snake: 8, memory: 12 },
-    aiHistory: [
-      {
-        id: 'ai-welcome',
-        role: 'assistant',
-        text: 'Hello Explorer! I only read your personal isolated watch database. Ask me about sleep, meals, bone mass, CSA neutrons, or any symptoms!',
-        timestampUtc: new Date().toISOString(),
-        mode: 'offline-db',
-      },
-    ],
+    aiHistory: [],
+    selectedMood: 'happy',
   };
 }
 
-function getStorageKey(visitorId: string): string {
-  return `aegis_watch_db_v2::${visitorId}`;
-}
-
-export function loadVisitorWatchDb(visitorId = getOrCreateVisitorId()): VisitorWatchDatabase {
-  const key = getStorageKey(visitorId);
-  let raw: string | null = null;
-  if (typeof window !== 'undefined' && window.localStorage) {
-    raw = window.localStorage.getItem(key);
-  } else {
-    raw = memoryFallbackStore.get(key) ?? null;
+export function loadVisitorWatchDb(customVisitorId?: string): VisitorWatchDatabase {
+  const visitorId = customVisitorId || getOrCreateVisitorId();
+  if (typeof window === 'undefined' || !window.localStorage) {
+    return createInitialVisitorWatchDb(visitorId);
   }
-
+  const raw = window.localStorage.getItem(VISITOR_DB_PREFIX + visitorId);
   if (!raw) {
-    const fresh = createInitialVisitorDb(visitorId);
+    const fresh = createInitialVisitorWatchDb(visitorId);
     saveVisitorWatchDb(fresh);
     return fresh;
   }
-
   try {
     const parsed = JSON.parse(raw) as VisitorWatchDatabase;
-    const today = todayUtcDate();
-    if (parsed.buffDateUtc !== today || !Array.isArray(parsed.dailyTasks) || parsed.dailyTasks.length !== 14) {
-      parsed.buffDateUtc = today;
-      parsed.dailyTasks = generate14DailyTasks(today);
-    }
-    if (!parsed.extraEnv) parsed.extraEnv = { ...DEFAULT_EXTRA_ENV_CONTROLS };
-    if (!parsed.shortcuts) parsed.shortcuts = ['flashlight', 'settings', 'find_suit', 'alarms', 'dnd', 'auto_brightness'];
-    if (!parsed.highScores) parsed.highScores = {};
-    if (parsed.settings) parsed.settings.offlineSimulated = false;
-    return parsed;
+    return {
+      ...createInitialVisitorWatchDb(visitorId),
+      ...parsed,
+      visitorId,
+      settings: {
+        ...createInitialVisitorWatchDb(visitorId).settings,
+        ...(parsed.settings || {}),
+      },
+    };
   } catch {
-    const fresh = createInitialVisitorDb(visitorId);
-    saveVisitorWatchDb(fresh);
-    return fresh;
+    return createInitialVisitorWatchDb(visitorId);
   }
 }
 
 export function saveVisitorWatchDb(db: VisitorWatchDatabase): void {
+  if (typeof window === 'undefined' || !window.localStorage) return;
   const updated: VisitorWatchDatabase = {
     ...db,
-    lastUpdatedUtc: new Date().toISOString(),
-    level: computeLevelFromXp(db.xp).level,
+    updatedAtUtc: new Date().toISOString(),
   };
-  const key = getStorageKey(db.visitorId);
-  const serialized = JSON.stringify(updated);
-  if (typeof window !== 'undefined' && window.localStorage) {
-    window.localStorage.setItem(key, serialized);
-  } else {
-    memoryFallbackStore.set(key, serialized);
+  try {
+    window.localStorage.setItem(VISITOR_DB_PREFIX + db.visitorId, JSON.stringify(updated));
+  } catch {
+    // Quota fallback
   }
 }
 
-/**
- * Pure state helpers for Aegis Buff! (14 daily tasks, XP leveling, planet shop)
- */
 export function completeDailyBuffTask(
   db: VisitorWatchDatabase,
   taskId: string
 ): VisitorWatchDatabase {
-  const target = db.dailyTasks.find((t) => t.id === taskId);
-  if (!target || target.completed) return db;
-  const nextXp = db.xp + target.xpReward;
-  const nextPoints = db.aegisPoints + target.pointsReward;
-  const nextLevel = computeLevelFromXp(nextXp).level;
-  const nextDb: VisitorWatchDatabase = {
+  let addedXp = 0;
+  let addedPoints = 0;
+  const nextTasks = db.dailyTasks.map((t) => {
+    if (t.id === taskId && !t.completed) {
+      addedXp = t.xpReward;
+      addedPoints = t.pointsReward;
+      return { ...t, completed: true };
+    }
+    return t;
+  });
+
+  if (addedXp === 0) return db;
+  return {
     ...db,
-    xp: nextXp,
-    level: nextLevel,
-    aegisPoints: nextPoints,
-    dailyTasks: db.dailyTasks.map((t) =>
-      t.id === taskId ? { ...t, completed: true } : t
-    ),
+    xp: db.xp + addedXp,
+    aegisPoints: db.aegisPoints + addedPoints,
+    dailyTasks: nextTasks,
   };
-  saveVisitorWatchDb(nextDb);
-  return nextDb;
 }
 
 export function purchasePlanetDecorator(
   db: VisitorWatchDatabase,
-  itemId: string
+  itemId: string,
+  customCoords?: { x: number; y: number }
 ): { db: VisitorWatchDatabase; ok: boolean; message: string } {
-  const item = PLANET_DECORATORS.find((p) => p.id === itemId);
-  if (!item) return { db, ok: false, message: 'Decorator not found.' };
+  const item = PLANET_DECORATORS.find((i) => i.id === itemId);
+  if (!item) return { db, ok: false, message: 'Item not found.' };
   if (db.aegisPoints < item.costPoints) {
     return {
       db,
       ok: false,
-      message: `Need ${item.costPoints} AegisPoints (have ${db.aegisPoints}).`,
+      message: `Need ${item.costPoints} pts! Finish daily tasks first.`,
     };
   }
 
-  const nextUnlocked = db.unlockedPlanetItems.includes(itemId)
-    ? db.unlockedPlanetItems
-    : [...db.unlockedPlanetItems, itemId];
-
-  const offset = ((db.placedPlanetItems.length * 13) % 24) - 12;
-  const newPlaced: PlacedPlanetItem = {
-    instanceId: `p-${Date.now().toString(36)}-${db.placedPlanetItems.length}`,
-    itemId,
-    x: Math.max(18, Math.min(82, item.defaultX + offset)),
-    y: Math.max(24, Math.min(76, item.defaultY + (offset % 9))),
-  };
+  const idx = db.placedPlanetItems.length;
+  const angle = (idx * 137.5 * Math.PI) / 180;
+  const radius = Math.min(32, 12 + idx * 4.5);
+  const x = customCoords
+    ? Math.max(18, Math.min(82, Math.round(customCoords.x)))
+    : Math.round(50 + Math.cos(angle) * radius);
+  const y = customCoords
+    ? Math.max(18, Math.min(82, Math.round(customCoords.y)))
+    : Math.round(50 + Math.sin(angle) * radius);
 
   const nextDb: VisitorWatchDatabase = {
     ...db,
     aegisPoints: db.aegisPoints - item.costPoints,
-    unlockedPlanetItems: nextUnlocked,
-    placedPlanetItems: [...db.placedPlanetItems, newPlaced],
+    placedPlanetItems: [
+      ...db.placedPlanetItems,
+      {
+        instanceId: `decor-${Date.now().toString(36)}-${idx}`,
+        itemId: item.id,
+        x,
+        y,
+      },
+    ],
   };
-  saveVisitorWatchDb(nextDb);
-  return { db: nextDb, ok: true, message: `Placed ${item.name} on your planet!` };
+
+  return {
+    db: nextDb,
+    ok: true,
+    message: `Placed ${item.name} on your planet!`,
+  };
+}
+
+export function movePlacedPlanetDecoration(
+  db: VisitorWatchDatabase,
+  instanceId: string,
+  x: number,
+  y: number
+): VisitorWatchDatabase {
+  const clampedX = Math.max(18, Math.min(82, Math.round(x)));
+  const clampedY = Math.max(18, Math.min(82, Math.round(y)));
+  return {
+    ...db,
+    placedPlanetItems: db.placedPlanetItems.map((it) =>
+      it.instanceId === instanceId ? { ...it, x: clampedX, y: clampedY } : it
+    ),
+  };
+}
+
+export function purchaseOrSelectPlanetSkin(
+  db: VisitorWatchDatabase,
+  skinId: string
+): { db: VisitorWatchDatabase; ok: boolean; message: string } {
+  const skin = PLANET_SKINS.find((s) => s.id === skinId);
+  if (!skin) return { db, ok: false, message: 'Planet not found.' };
+  const unlocked = db.unlockedPlanets ?? ['terra_prime'];
+  if (unlocked.includes(skinId)) {
+    return {
+      db: { ...db, activePlanetId: skinId },
+      ok: true,
+      message: `Switched to ${skin.name}!`,
+    };
+  }
+  if (db.aegisPoints < skin.costPoints) {
+    return {
+      db,
+      ok: false,
+      message: `Need ${skin.costPoints} pts for ${skin.name}!`,
+    };
+  }
+  return {
+    db: {
+      ...db,
+      aegisPoints: db.aegisPoints - skin.costPoints,
+      activePlanetId: skinId,
+      unlockedPlanets: [...unlocked, skinId],
+    },
+    ok: true,
+    message: `Unlocked ${skin.name}!`,
+  };
 }
 
 /**
- * Nutrition & Body Viability summary calculators grounded in NASA HRP & CSA telemetry rules
- */
-export function computeNutritionTotals(meals: MealEntry[]) {
-  return meals.reduce(
-    (acc, m) => ({
-      calories: acc.calories + m.calories,
-      proteinG: acc.proteinG + m.proteinG,
-      calciumMg: acc.calciumMg + m.calciumMg,
-      sodiumMg: acc.sodiumMg + m.sodiumMg,
-      potassiumMg: acc.potassiumMg + m.potassiumMg,
-      vitDIu: acc.vitDIu + m.vitDIu,
-    }),
-    { calories: 0, proteinG: 0, calciumMg: 0, sodiumMg: 0, potassiumMg: 0, vitDIu: 0 }
-  );
-}
-
-export function getSuggestedNutritionGuidance(
-  inputs: LiveSensorInputs,
-  meals: MealEntry[]
-): string[] {
-  const totals = computeNutritionTotals(meals);
-  const { boneMass } = computeBoneMetricsFromSoundWave(inputs.tibialSoundSpeed);
-  const tips: string[] = [];
-  if (boneMass < 1.05 || totals.calciumMg < 1100) {
-    tips.push('Bone protection low: Add high-Calcium Salmon/Kale + 1,000 IU Vitamin D3/K2.');
-  }
-  if (totals.sodiumMg > 2100 || inputs.systolicBp >= 135) {
-    tips.push('Reduce dietary Na+ (<2,000mg) and boost K+ greens to protect eyes & BP.');
-  }
-  if (inputs.sweatSodium > 58) {
-    tips.push('Elevated sweat sodium loss: Take 450mL isotonic electrolyte ration now.');
-  }
-  if (inputs.radiationRate > 35) {
-    tips.push('Higher radiation flux: Consume antioxidant berries / B-Complex ration.');
-  }
-  if (totals.calories < 2200) {
-    tips.push('Caloric deficit risks muscle atrophy: Add +400 kcal high-protein pack.');
-  }
-  if (tips.length === 0) {
-    tips.push('Nutrition & electrolyte balance optimal for zero-G bone & immunity!');
-  }
-  return tips;
-}
-
-export interface ViabilityRegionReport {
-  id: 'head' | 'heart' | 'lungs' | 'tibia' | 'muscle' | 'sweat';
-  label: string;
-  score: number;
-  status: 'nominal' | 'warning' | 'critical';
-  metricsText: string;
-  actionTip: string;
-}
-
-export function computeBodyViability(
-  inputs: LiveSensorInputs,
-  db: VisitorWatchDatabase
-): { overallScore: number; regions: ViabilityRegionReport[] } {
-  const { boneMass } = computeBoneMetricsFromSoundWave(inputs.tibialSoundSpeed);
-
-  const headScore = Math.max(
-    40,
-    Math.min(100, Math.round(98 - Math.max(0, 7.0 - inputs.sleepHours) * 8 - Math.max(0, inputs.systolicBp - 130) * 0.7))
-  );
-  const heartScore = Math.max(
-    30,
-    Math.min(
-      100,
-      Math.round(
-        98 -
-          (inputs.exerciseActive ? 0 : Math.max(0, inputs.systolicBp - 128) * 1.1) -
-          (inputs.exerciseActive ? 0 : Math.max(0, inputs.heartRate - 98) * 0.8)
-      )
-    )
-  );
-  const lungsScore = Math.max(
-    35,
-    Math.min(
-      100,
-      Math.round(99 - Math.max(0, 96.5 - inputs.spo2) * 8 - Math.max(0, inputs.cabinCo2 - 3.2) * 11)
-    )
-  );
-  const tibiaScore = Math.max(
-    35,
-    Math.min(100, Math.round(62 + (boneMass - 0.85) * 82 - (inputs.shinPatchWet ? 15 : 0)))
-  );
-  const muscleScore = Math.max(
-    45,
-    Math.min(100, Math.round(78 + Math.min(20, (inputs.steps / 10000) * 20)))
-  );
-  const sweatScore = Math.max(
-    40,
-    Math.min(
-      100,
-      Math.round(96 - Math.max(0, inputs.sweatSodium - 52) * 1.1 - Math.max(0, inputs.radiationRate - 25) * 0.45)
-    )
-  );
-
-  const toStatus = (s: number): 'nominal' | 'warning' | 'critical' =>
-    s < 65 ? 'critical' : s < 82 ? 'warning' : 'nominal';
-
-  const regions: ViabilityRegionReport[] = [
-    {
-      id: 'head',
-      label: 'Head · SANS & Sleep',
-      score: headScore,
-      status: toStatus(headScore),
-      metricsText: `Sleep ${inputs.sleepHours}h (Score ${db.sleep.score}) · Head fluid nominal`,
-      actionTip: headScore < 82 ? 'Use 480nm blue wake light & check thigh cuffs for SANS pressure.' : 'Circadian alignment steady.',
-    },
-    {
-      id: 'heart',
-      label: 'Heart · Vascular',
-      score: heartScore,
-      status: toStatus(heartScore),
-      metricsText: `BP ${inputs.systolicBp}/${inputs.diastolicBp} · HR ${inputs.heartRate} bpm`,
-      actionTip: heartScore < 82 ? 'Stop heavy deck task, breathe 6/min, hydrate isotonic pouch.' : 'Pulse wave velocity & BP healthy.',
-    },
-    {
-      id: 'lungs',
-      label: 'Lungs · O2 & CO2',
-      score: lungsScore,
-      status: toStatus(lungsScore),
-      metricsText: `SpO2 ${inputs.spo2}% · CO2 ${inputs.cabinCo2} mmHg`,
-      actionTip: lungsScore < 82 ? 'Switch cabin fan HIGH & verify amine CO2 scrubber.' : 'Gas exchange & O2% optimal.',
-    },
-    {
-      id: 'tibia',
-      label: 'Shin · Ultrasonic Bone',
-      score: tibiaScore,
-      status: toStatus(tibiaScore),
-      metricsText: `BMD ${boneMass} g/cm² · ${inputs.tibialSoundSpeed} m/s`,
-      actionTip: inputs.shinPatchWet
-        ? 'Dry shin pad moisture and press 3s for reliable ultrasonic readout.'
-        : tibiaScore < 82
-        ? 'Perform 45m ARED squats + 1,200mg Calcium & Vit D3 ration.'
-        : 'Bone structural density strong.',
-    },
-    {
-      id: 'muscle',
-      label: 'Legs · ARED Muscle',
-      score: muscleScore,
-      status: toStatus(muscleScore),
-      metricsText: `${inputs.steps.toLocaleString()} steps · ${db.workouts.length} ARED logs`,
-      actionTip: muscleScore < 82 ? 'Log Treadmill or ARED Squat session inside Workout app.' : 'Antigravity muscle retention high.',
-    },
-    {
-      id: 'sweat',
-      label: 'Immune & Radiation',
-      score: sweatScore,
-      status: toStatus(sweatScore),
-      metricsText: `Sweat Na+ ${inputs.sweatSodium} · Rad ${inputs.radiationRate} uSv/h`,
-      actionTip: sweatScore < 82 ? 'Enter storm berth if rad >45 or replenish electrolytes.' : 'Marrow dose & immune hydration clear.',
-    },
-  ];
-
-  const overallScore = Math.round(regions.reduce((s, r) => s + r.score, 0) / regions.length);
-  return { overallScore, regions };
-}
-
-/**
- * STRICT PER-VISITOR DB GREP ENGINE FOR AegisAI
- * Reads ONLY the current visitor's local watch database & live telemetry snapshot.
+ * Greps the visitor's watch database + all 10 crewmates + NASA/CSA knowledge for AI & search.
  */
 export function grepVisitorWatchDb(
   db: VisitorWatchDatabase,
@@ -756,94 +809,115 @@ export function grepVisitorWatchDb(
   situation: SituationId = 'nominal'
 ): {
   visitorId: string;
-  timestampUtc: string;
-  matchedSections: string[];
+  matchedNasaCsaRefs: NasaCsaBibEntry[];
   snapshot: Record<string, unknown>;
-  matchedNasaCsaRefs: Array<{ title: string; source: string; action: string }>;
 } {
-  const q = query.toLowerCase();
   const { boneMass, tScore } = computeBoneMetricsFromSoundWave(inputs.tibialSoundSpeed);
-  const envReadings = buildEnvironmentDetectors(inputs, db.extraEnv);
-  const nutritionTotals = computeNutritionTotals(db.meals);
-  const viability = computeBodyViability(inputs, db);
-  const levelInfo = computeLevelFromXp(db.xp);
-  const emotion = getAstronautEmotionFromState(situation, inputs);
+  const envPacket = generateDynamicEnvironmentJson(
+    db.visitorId,
+    inputs,
+    db.extraEnv,
+    db.settings.offlineSimulated
+  );
+  const matchedNasaCsaRefs = grepNasaCsaBibliography(query, 6);
+  const systemRisks = evaluateWatchSystemRisks(inputs);
+  const crew10 = buildInitialCrew().map((c) => ({
+    id: c.id,
+    name: c.name,
+    role: c.role,
+    location: c.moduleLocation,
+    status: c.status,
+    summary: c.conditionSummary,
+    action: c.actionRequired,
+    vitals: c.vitals,
+  }));
 
-  const matchedSections: string[] = ['vitals', 'viability'];
-  if (/sleep|rem|deep|tired|bed|dream|circadian/.test(q)) matchedSections.push('sleep');
-  if (/food|meal|eat|calc|sodium|potassium|diet|nutri|vit|calorie|water/.test(q)) matchedSections.push('meals');
-  if (/rad|neutron|proton|cans|storm|dose|msv|shield/.test(q)) matchedSections.push('radiation_cans');
-  if (/bone|tibia|sos|ared|squat|step|workout|muscle|exercise/.test(q)) matchedSections.push('bone_workout');
-  if (/co2|air|o2|temp|heat|baro|osm|noise|water|suit|env/.test(q)) matchedSections.push('environment_12');
-  if (/note|calendar|alarm|buff|xp|level|planet|task/.test(q)) matchedSections.push('tasks_notes_calendar');
-
-  const matchedNasaCsaRefs = NASA_CSA_KNOWLEDGE.filter((item) => {
-    const hay = `${item.title} ${item.metricKey} ${item.conditionTriggered} ${item.plainSummary}`.toLowerCase();
-    return q
-      .split(/\s+/)
-      .filter((w) => w.length > 2)
-      .some((word) => hay.includes(word));
-  })
-    .slice(0, 4)
-    .map((item) => ({
-      title: item.title,
-      source: item.sourceName,
-      action: item.watchAction,
-    }));
-
-  const snapshot = {
-    visitorId: db.visitorId,
-    utcTime: new Date().toISOString(),
-    emotionState: emotion,
-    vitals: {
-      bp: `${inputs.systolicBp}/${inputs.diastolicBp} mmHg`,
-      heartRateBpm: inputs.heartRate,
-      spo2Pct: inputs.spo2,
-      coreTempC: inputs.coreTemp,
-      tibialSoundSpeedMs: inputs.tibialSoundSpeed,
-      boneMassGcm2: boneMass,
-      boneTScore: tScore,
-      radiationRateUSvH: inputs.radiationRate,
-      cumulativeMissionMSv: db.cumulativeRadiationMSv,
-      cabinCo2Mmhg: inputs.cabinCo2,
-      sweatSodiumMmol: inputs.sweatSodium,
-      stepsToday: inputs.steps,
-      caloriesBurned: inputs.calories,
-    },
-    sleepSummary: db.sleep,
-    nutritionTotals,
-    mealsLogged: db.meals.map((m) => `${m.slot}: ${m.name} (${m.calories} kcal)`),
-    environment12Detectors: envReadings.map((e) => ({
-      id: e.id,
-      value: `${e.value} ${e.unit}`,
-      status: e.status,
-    })),
-    viabilityOverall: viability.overallScore,
-    viabilityRegions: viability.regions.map((r) => `${r.label}: ${r.score}/100 (${r.status})`),
-    aegisBuffProgress: {
-      level: levelInfo.level,
-      title: levelInfo.title,
-      xp: db.xp,
-      aegisPoints: db.aegisPoints,
-      completedTasksToday: db.dailyTasks.filter((t) => t.completed).length,
-      totalDailyTasks: db.dailyTasks.length,
-    },
-    notesCount: db.notes.length,
-    recentNotes: db.notes.slice(-3).map((n) => `${n.title}: ${n.body}`),
-    upcomingCalendar: db.calendar.filter((c) => !c.done).slice(0, 3),
-  };
+  const totalMealCalcium = db.meals.reduce((acc, m) => acc + m.calciumMg, 0);
+  const totalMealCalories = db.meals.reduce((acc, m) => acc + m.calories, 0);
 
   return {
     visitorId: db.visitorId,
-    timestampUtc: new Date().toISOString(),
-    matchedSections,
-    snapshot,
     matchedNasaCsaRefs,
+    snapshot: {
+      visitorId: db.visitorId,
+      situation,
+      vitals: {
+        heartRateBpm: inputs.heartRate,
+        bloodPressureMmhg: `${inputs.systolicBp}/${inputs.diastolicBp}`,
+        spo2Pct: inputs.spo2,
+        boneMassGcm2: boneMass,
+        boneTScore: tScore,
+        tibialSoundSpeedMs: inputs.tibialSoundSpeed,
+        radiationRateUsvh: inputs.radiationRate,
+        cabinCo2Mmhg: inputs.cabinCo2,
+        sweatSodiumMmol: inputs.sweatSodium,
+        coreTempC: inputs.coreTemp,
+        stepsToday: inputs.steps,
+        caloriesBurned: inputs.calories,
+        sleepHours: inputs.sleepHours,
+        exerciseActive: inputs.exerciseActive,
+      },
+      crewmates10: crew10,
+      nutritionSummary: {
+        mealsLogged: db.meals.length,
+        meals: db.meals,
+        totalMealCalories,
+        totalMealCalciumMg: totalMealCalcium,
+        waterIntakeMl: db.waterIntakeMl,
+      },
+      sleepSummary: {
+        score: db.sleep.sleepScore,
+        totalHours: db.sleep.totalHours,
+      },
+      aegisBuff: {
+        xp: db.xp,
+        level: computeLevelFromXp(db.xp).level,
+        aegisPoints: db.aegisPoints,
+        completedTasks: db.dailyTasks.filter((t) => t.completed).length,
+        totalTasks: db.dailyTasks.length,
+        activePlanetId: db.activePlanetId ?? 'terra_prime',
+      },
+      environmentAlerts: envPacket.activeAlertsCount,
+      systemRisks,
+      backendRiskCatalogCount: BACKEND_WATCH_HEALTH_AND_RISKS_CATALOG.length,
+      notesCount: db.notes.length,
+      workoutsCount: db.workouts.length,
+    },
   };
 }
 
+export const createInitialVisitorDb = createInitialVisitorWatchDb;
+
+export function computeNutritionTotals(meals: MealLogItem[]) {
+  return meals.reduce(
+    (acc, m) => ({
+      calories: acc.calories + (m.calories || 0),
+      calciumMg: acc.calciumMg + (m.calciumMg || 0),
+      sodiumMg: acc.sodiumMg + (m.sodiumMg || 0),
+      waterMl: acc.waterMl + (m.waterMl || 0),
+    }),
+    { calories: 0, calciumMg: 0, sodiumMg: 0, waterMl: 0 }
+  );
+}
+
+export function computeBodyViability(inputs: LiveSensorInputs, db?: VisitorWatchDatabase) {
+  const { boneMass } = computeBoneMetricsFromSoundWave(inputs.tibialSoundSpeed);
+  const regions = [
+    { id: 'head', label: 'Head', score: inputs.cabinCo2 > 4 ? 72 : 95 },
+    { id: 'heart', label: 'Heart', score: inputs.systolicBp >= 140 ? 68 : 96 },
+    { id: 'lungs', label: 'Lungs', score: inputs.spo2 < 94 ? 65 : 97 },
+    { id: 'arms', label: 'Arms', score: inputs.radiationRate > 45 ? 70 : 94 },
+    { id: 'core', label: 'Belly', score: (db?.waterIntakeMl ?? 1650) < 1200 ? 78 : 95 },
+    { id: 'legs', label: 'Legs', score: boneMass < 1.0 ? 74 : 96 },
+  ];
+  const overallScore = Math.round(
+    regions.reduce((s, r) => s + r.score, 0) / regions.length
+  );
+  return { overallScore, regions };
+}
+
 /**
- * 100% OFFLINE deterministic AegisAI fallback responder — strictly reads visitor DB snapshot!
+ * Simple, cheerful local responder when offline (CEFR B2 max, short clear sentences).
  */
 export function evaluateOfflineAiQuery(
   query: string,
@@ -851,138 +925,113 @@ export function evaluateOfflineAiQuery(
   inputs: LiveSensorInputs,
   situation: SituationId = 'nominal'
 ): string {
-  const grepped = grepVisitorWatchDb(db, inputs, query, situation);
-  const q = query.toLowerCase();
   const { boneMass } = computeBoneMetricsFromSoundWave(inputs.tibialSoundSpeed);
-  const env = buildEnvironmentDetectors(inputs, db.extraEnv);
-  const envAlerts = env.filter((e) => e.status !== 'nominal');
-  const totals = computeNutritionTotals(db.meals);
-  const viability = computeBodyViability(inputs, db);
-  const lines: string[] = [];
+  const q = query.toLowerCase();
+  const totalCa = db.meals.reduce((s, m) => s + m.calciumMg, 0);
 
-  if (inputs.radiationRate > 45 || /rad|neutron|proton|cans|storm/.test(q)) {
-    const cans = env.find((e) => e.id === 'csa_cans_neutron');
-    lines.push(
-      `[DB Grepped · Radiation] Total ${inputs.radiationRate} uSv/h (CSA CANS Neutron ~${cans?.value} uSv/h = ~31% of dose, Mission Cumulative ${db.cumulativeRadiationMSv} mSv).`
-    );
-    lines.push(
-      inputs.radiationRate > 45
-        ? 'ACTION: Enter water-wall / polyethylene storm shelter berth immediately & take antioxidant berry ration.'
-        : 'Status nominal. Stay near water-shielded bunk walls during sleep.'
-    );
-  } else if (/sleep|tired|rem|deep|fatigue/.test(q)) {
-    lines.push(
-      `[DB Grepped · Sleep] You slept ${inputs.sleepHours}h (Score ${db.sleep.score}/100): REM ${db.sleep.remMinutes}m, Deep ${db.sleep.deepMinutes}m, Light ${db.sleep.lightMinutes}m, Awake ${db.sleep.awakeMinutes}m.`
-    );
-    lines.push(`Advice: ${db.sleep.recommendation}`);
-  } else if (/bone|tibia|sos|ared|workout|step/.test(q)) {
-    lines.push(
-      `[DB Grepped · Bone & Workout] Shin ultrasound ${inputs.tibialSoundSpeed} m/s -> BMD ${boneMass} g/cm². Steps today: ${inputs.steps.toLocaleString()}.`
-    );
-    lines.push(
-      boneMass < 1.02
-        ? 'ACTION: Complete 45m ARED squats/heel-raises today + reach >=1,200mg Calcium.'
-        : 'Bone density strong against 1%/month microgravity loss.'
-    );
-  } else if (/food|meal|eat|nutri|calc|sodium|diet/.test(q)) {
-    lines.push(
-      `[DB Grepped · Nutrition] Logged ${db.meals.length} meals (${totals.calories} kcal, Protein ${totals.proteinG}g, Calcium ${totals.calciumMg}mg, Sodium ${totals.sodiumMg}mg).`
-    );
-    lines.push(`Guidance: ${getSuggestedNutritionGuidance(inputs, db.meals)[0]}`);
-  } else if (/bp|pressure|heart|pulse|hr|faint|dizzy/.test(q)) {
-    lines.push(
-      `[DB Grepped · Cardio] BP ${inputs.systolicBp}/${inputs.diastolicBp} mmHg, HR ${inputs.heartRate} bpm, SpO2 ${inputs.spo2}%.`
-    );
-    lines.push(
-      inputs.systolicBp >= 140 && !inputs.exerciseActive
-        ? 'ACTION: Halt EVA/deck work, rest & do 6/min slow paced breathing.'
-        : 'Cardiovascular vitals stable.'
-    );
-  } else {
-    lines.push(
-      `[Visitor DB ${db.visitorId.slice(0, 12)}] Viability ${viability.overallScore}/100 · BP ${inputs.systolicBp}/${inputs.diastolicBp} · HR ${inputs.heartRate} bpm · SpO2 ${inputs.spo2}% · Bone ${boneMass} g/cm² · Sleep ${inputs.sleepHours}h · Rad ${inputs.radiationRate} uSv/h.`
-    );
-    if (envAlerts.length > 0) {
-      lines.push(`Env Alerts (${envAlerts.length}): ${envAlerts.map((a) => `${a.shortLabel} ${a.value}${a.unit}`).join(', ')}.`);
-    } else {
-      lines.push(`All 12 environment sensors nominal. Aegis Buff Level ${db.level} (${db.dailyTasks.filter((t) => t.completed).length}/14 tasks done).`);
-    }
+  if (q.includes('crew') || q.includes('maya') || q.includes('carlos') || q.includes('team')) {
+    return 'All 10 crewmates are tracked. Maya Lin needs calcium food. Kenji Sato needs the air fan on.';
   }
-
-  if (grepped.matchedNasaCsaRefs.length > 0) {
-    lines.push(`NASA/CSA Ref: ${grepped.matchedNasaCsaRefs[0].title} — ${grepped.matchedNasaCsaRefs[0].action}`);
+  if (q.includes('bone') || q.includes('calcium') || q.includes('tibia') || q.includes('squat')) {
+    return `Bone score is ${boneMass} g/cm². You ate ${totalCa} mg calcium. Do 45m squats today!`;
   }
-
-  return lines.join('\n');
+  if (q.includes('rad') || q.includes('neutron') || q.includes('solar')) {
+    return `Radiation is ${inputs.radiationRate} uSv/h. Go to the safe room if it passes 45.`;
+  }
+  if (q.includes('sleep') || q.includes('tired') || q.includes('rest')) {
+    return `You slept ${inputs.sleepHours} hours. Dim lights before bed for deep rest.`;
+  }
+  if (q.includes('bp') || q.includes('pressure') || q.includes('heart') || q.includes('pulse')) {
+    return `Blood pressure is ${inputs.systolicBp}/${inputs.diastolicBp}. Heart rate is ${inputs.heartRate} bpm.`;
+  }
+  return `Heart ${inputs.heartRate} bpm, Steps ${inputs.steps}, Sleep ${inputs.sleepHours}h, Bone ${boneMass}. All 10 crewmates synced!`;
 }
 
-// ============================================================================
-// PER-VISITOR INDEXEDDB MEDIA STORAGE (Photos, Videos, Voice Recordings)
-// ============================================================================
-const IDB_NAME = 'aegis_watch_media_v1';
-const IDB_STORE = 'media_items';
+/* ============================================================================
+ * INDEXED-DB MEDIA STORE FOR CAMERA PHOTOS, VIDEOS & VOICE RECORDINGS
+ * ============================================================================ */
 
-function openMediaDb(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    if (typeof window === 'undefined' || !window.indexedDB) {
-      reject(new Error('IndexedDB unavailable'));
-      return;
+export interface WatchMediaItem {
+  id: string;
+  visitorId: string;
+  kind: 'photo' | 'video' | 'audio';
+  title: string;
+  createdAtUtc: string;
+  dataUrl: string;
+  smartTag?: string;
+  durationSec?: number;
+}
+
+const IDB_NAME = 'aegis_watch_media_idb_v1';
+const IDB_STORE = 'visitor_media';
+const memoryMediaFallback: WatchMediaItem[] = [];
+
+function openMediaIdb(): Promise<IDBDatabase | null> {
+  if (typeof window === 'undefined' || !window.indexedDB) {
+    return Promise.resolve(null);
+  }
+  return new Promise((resolve) => {
+    try {
+      const req = window.indexedDB.open(IDB_NAME, 1);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains(IDB_STORE)) {
+          db.createObjectStore(IDB_STORE, { keyPath: 'id' });
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => resolve(null);
+    } catch {
+      resolve(null);
     }
-    const req = window.indexedDB.open(IDB_NAME, 1);
-    req.onupgradeneeded = () => {
-      const db = req.result;
-      if (!db.objectStoreNames.contains(IDB_STORE)) {
-        const store = db.createObjectStore(IDB_STORE, { keyPath: 'id' });
-        store.createIndex('visitorId', 'visitorId', { unique: false });
-      }
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
+  });
+}
+
+export async function saveVisitorMediaItem(item: WatchMediaItem): Promise<void> {
+  const idb = await openMediaIdb();
+  if (!idb) {
+    memoryMediaFallback.unshift(item);
+    return;
+  }
+  return new Promise((resolve) => {
+    const tx = idb.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(item);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => resolve();
   });
 }
 
 export async function listVisitorMedia(visitorId: string): Promise<WatchMediaItem[]> {
-  try {
-    const db = await openMediaDb();
-    return await new Promise((resolve) => {
-      const tx = db.transaction(IDB_STORE, 'readonly');
-      const index = tx.objectStore(IDB_STORE).index('visitorId');
-      const req = index.getAll(visitorId);
-      req.onsuccess = () => {
-        const items = (req.result || []) as WatchMediaItem[];
-        resolve(items.sort((a, b) => b.createdAtUtc.localeCompare(a.createdAtUtc)));
-      };
-      req.onerror = () => resolve([]);
-    });
-  } catch {
-    return [];
+  const idb = await openMediaIdb();
+  if (!idb) {
+    return memoryMediaFallback.filter((m) => m.visitorId === visitorId);
   }
-}
-
-export async function saveVisitorMediaItem(item: WatchMediaItem): Promise<void> {
-  try {
-    const db = await openMediaDb();
-    await new Promise<void>((resolve, reject) => {
-      const tx = db.transaction(IDB_STORE, 'readwrite');
-      tx.objectStore(IDB_STORE).put(item);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-  } catch {
-    // Graceful no-op in non-IDB headless tests
-  }
+  return new Promise((resolve) => {
+    const tx = idb.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).getAll();
+    req.onsuccess = () => {
+      const all = (req.result || []) as WatchMediaItem[];
+      resolve(
+        all
+          .filter((m) => m.visitorId === visitorId)
+          .sort((a, b) => b.createdAtUtc.localeCompare(a.createdAtUtc))
+      );
+    };
+    req.onerror = () => resolve([]);
+  });
 }
 
 export async function deleteVisitorMediaItem(id: string): Promise<void> {
-  try {
-    const db = await openMediaDb();
-    await new Promise<void>((resolve) => {
-      const tx = db.transaction(IDB_STORE, 'readwrite');
-      tx.objectStore(IDB_STORE).delete(id);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => resolve();
-    });
-  } catch {
-    // Graceful no-op
+  const idb = await openMediaIdb();
+  if (!idb) {
+    const idx = memoryMediaFallback.findIndex((m) => m.id === id);
+    if (idx >= 0) memoryMediaFallback.splice(idx, 1);
+    return;
   }
+  return new Promise((resolve) => {
+    const tx = idb.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => resolve();
+  });
 }

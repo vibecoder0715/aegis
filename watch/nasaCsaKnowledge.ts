@@ -506,13 +506,13 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
 
   // =========================================================================
   // 3. NASA HRP — Ongoing Research in Space (21 items)
-  // https://www.nasa.gov/hrp/ongoing-hrp-research/
+  // https://www.nasa.gov/hrp/risks/
   // =========================================================================
   {
     id: 'no-01',
     sourceId: 'nasa_ongoing',
     sourceName: 'NASA Ongoing HRP Research',
-    url: 'https://www.nasa.gov/hrp/ongoing-hrp-research/',
+    url: 'https://www.nasa.gov/hrp/risks/',
     title: 'CIPHER (Integrated 14-Study Human Protocol)',
     metricKey: 'multiSystemScore',
     conditionTriggered: 'Tracking short (<3.5 mo), standard (6 mo), and extended (~1 yr) flights',
@@ -523,7 +523,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'no-02',
     sourceId: 'nasa_ongoing',
     sourceName: 'NASA Ongoing HRP Research',
-    url: 'https://www.nasa.gov/hrp/ongoing-hrp-research/',
+    url: 'https://www.nasa.gov/hrp/risks/',
     title: 'B-Complex Vitamin Trial for SANS Prevention',
     metricKey: 'vitaminBIntake / eyePressure',
     conditionTriggered: 'One-carbon genetics + elevated B6/B12/folate need to lower SANS',
@@ -534,7 +534,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'no-03',
     sourceId: 'nasa_ongoing',
     sourceName: 'NASA Ongoing HRP Research',
-    url: 'https://www.nasa.gov/hrp/ongoing-hrp-research/',
+    url: 'https://www.nasa.gov/hrp/risks/',
     title: 'Thigh Cuff Venous Pooling Countermeasure',
     metricKey: 'cephaladFluidIndex',
     conditionTriggered: 'High upper-body congestion & facial fullness indices',
@@ -545,7 +545,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'no-04',
     sourceId: 'nasa_ongoing',
     sourceName: 'NASA Ongoing HRP Research',
-    url: 'https://www.nasa.gov/hrp/ongoing-hrp-research/',
+    url: 'https://www.nasa.gov/hrp/risks/',
     title: 'Brain Fluid Pressure & Spinal Fluid Biomarkers',
     metricKey: 'neuroViability',
     conditionTriggered: 'Post-flight brain white-matter & ventricular volume expansion studies',
@@ -556,7 +556,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'no-05',
     sourceId: 'nasa_ongoing',
     sourceName: 'NASA Ongoing HRP Research',
-    url: 'https://www.nasa.gov/hrp/ongoing-hrp-research/',
+    url: 'https://www.nasa.gov/hrp/risks/',
     title: 'Standard Measures Core Biometric Set',
     metricKey: 'steps / sleepHours / spo2 / bp',
     conditionTriggered: 'Harmonized cross-mission data baseline across ISS & Artemis crews',
@@ -567,7 +567,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'no-06',
     sourceId: 'nasa_ongoing',
     sourceName: 'NASA Ongoing HRP Research',
-    url: 'https://www.nasa.gov/hrp/ongoing-hrp-research/',
+    url: 'https://www.nasa.gov/hrp/risks/',
     title: 'Simulating Manual Piloting After Long Transit',
     metricKey: 'reactionReflexGame',
     conditionTriggered: 'Testing lunar/Mars lander stick control after months in 0G',
@@ -578,7 +578,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'no-07',
     sourceId: 'nasa_ongoing',
     sourceName: 'NASA Ongoing HRP Research',
-    url: 'https://www.nasa.gov/hrp/ongoing-hrp-research/',
+    url: 'https://www.nasa.gov/hrp/risks/',
     title: 'CHAPEA 378-Day Mars Dune Alpha Habitat',
     metricKey: 'isolationMorale / commsLag',
     conditionTriggered: 'Simulating autonomous 4-person Mars crew under comms delay',
@@ -589,7 +589,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'no-08',
     sourceId: 'nasa_ongoing',
     sourceName: 'NASA Ongoing HRP Research',
-    url: 'https://www.nasa.gov/hrp/ongoing-hrp-research/',
+    url: 'https://www.nasa.gov/hrp/risks/',
     title: 'HERA Isolation & Teamwork Behavioral Dynamics',
     metricKey: 'emotionsTrend',
     conditionTriggered: 'Detecting subtle morale & workload friction in 45-day confinement',
@@ -600,7 +600,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'no-09',
     sourceId: 'nasa_ongoing',
     sourceName: 'NASA Ongoing HRP Research',
-    url: 'https://www.nasa.gov/hrp/ongoing-hrp-research/',
+    url: 'https://www.nasa.gov/hrp/risks/',
     title: 'Compact Exploration Exercise Hardware',
     metricKey: 'workoutLog',
     conditionTriggered: 'Artemis & Gateway capsules lack room for bulky ISS ARED racks',
@@ -611,7 +611,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'no-10',
     sourceId: 'nasa_ongoing',
     sourceName: 'NASA Ongoing HRP Research',
-    url: 'https://www.nasa.gov/hrp/ongoing-hrp-research/',
+    url: 'https://www.nasa.gov/hrp/risks/',
     title: 'Lower Body Negative Pressure (LBNP) Suit',
     metricKey: 'bp + sansIntraocularMmhg',
     conditionTriggered: 'Pulling blood back toward lower extremities in zero gravity',
@@ -622,7 +622,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'no-11',
     sourceId: 'nasa_ongoing',
     sourceName: 'NASA Ongoing HRP Research',
-    url: 'https://www.nasa.gov/hrp/ongoing-hrp-research/',
+    url: 'https://www.nasa.gov/hrp/risks/',
     title: 'Automated Sleep Staging & Circadian Lighting',
     metricKey: 'sleepRemDeepLight',
     conditionTriggered: 'Solid-state LED spectrum shifting between 6500K day and 2700K night',
@@ -633,7 +633,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'no-12',
     sourceId: 'nasa_ongoing',
     sourceName: 'NASA Ongoing HRP Research',
-    url: 'https://www.nasa.gov/hrp/ongoing-hrp-research/',
+    url: 'https://www.nasa.gov/hrp/risks/',
     title: 'Cardio-Pulmonary Vascular Arterial Stiffness',
     metricKey: 'pulseWaveVelocity',
     conditionTriggered: 'Carotid & brachial ultrasound showing accelerated arterial aging',
@@ -644,7 +644,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'no-13',
     sourceId: 'nasa_ongoing',
     sourceName: 'NASA Ongoing HRP Research',
-    url: 'https://www.nasa.gov/hrp/ongoing-hrp-research/',
+    url: 'https://www.nasa.gov/hrp/risks/',
     title: 'Occupant Protection in Rough Capsule Landings',
     metricKey: 'boneMass + hydration',
     conditionTriggered: 'High-G wave/ground impacts after long-duration flight',
@@ -655,7 +655,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'no-14',
     sourceId: 'nasa_ongoing',
     sourceName: 'NASA Ongoing HRP Research',
-    url: 'https://www.nasa.gov/hrp/ongoing-hrp-research/',
+    url: 'https://www.nasa.gov/hrp/risks/',
     title: 'Biomarker Profiling From Non-Invasive Sweat/Saliva',
     metricKey: 'sweatSodium / cortisol',
     conditionTriggered: 'Replacing frequent venous blood draws with smart skin patches',
@@ -666,7 +666,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'no-15',
     sourceId: 'nasa_ongoing',
     sourceName: 'NASA Ongoing HRP Research',
-    url: 'https://www.nasa.gov/hrp/ongoing-hrp-research/',
+    url: 'https://www.nasa.gov/hrp/risks/',
     title: 'Deep-Space Autonomous Clinical Decision Aid',
     metricKey: 'aegisAiQuery',
     conditionTriggered: 'Crew medical officer needs structured symptom & vitals check offline',
@@ -677,7 +677,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'no-16',
     sourceId: 'nasa_ongoing',
     sourceName: 'NASA Ongoing HRP Research',
-    url: 'https://www.nasa.gov/hrp/ongoing-hrp-research/',
+    url: 'https://www.nasa.gov/hrp/risks/',
     title: 'Plant-Based Fresh Microgreens for Morale & Folate',
     metricKey: 'planetBuilder / greensIntake',
     conditionTriggered: 'Hydroponic salad care boosts psychological wellbeing in analog studies',
@@ -688,7 +688,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'no-17',
     sourceId: 'nasa_ongoing',
     sourceName: 'NASA Ongoing HRP Research',
-    url: 'https://www.nasa.gov/hrp/ongoing-hrp-research/',
+    url: 'https://www.nasa.gov/hrp/risks/',
     title: 'Virtual Reality & Gamified Cognitive Recovery',
     metricKey: 'miniGamesProgress',
     conditionTriggered: 'Short high-focus cognitive tasks sustain executive function',
@@ -699,7 +699,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'no-18',
     sourceId: 'nasa_ongoing',
     sourceName: 'NASA Ongoing HRP Research',
-    url: 'https://www.nasa.gov/hrp/ongoing-hrp-research/',
+    url: 'https://www.nasa.gov/hrp/risks/',
     title: 'Microgravity Altered Bone Recovery Post-Flight',
     metricKey: 'boneMassHistory',
     conditionTriggered: 'Complete trabecular bone recovery can lag for months after return',
@@ -710,7 +710,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'no-19',
     sourceId: 'nasa_ongoing',
     sourceName: 'NASA Ongoing HRP Research',
-    url: 'https://www.nasa.gov/hrp/ongoing-hrp-research/',
+    url: 'https://www.nasa.gov/hrp/risks/',
     title: 'Precision High-Protein & Omega-3 Rationing',
     metricKey: 'proteinBalance',
     conditionTriggered: 'Preventing muscle proteolysis during calorie or stress dips',
@@ -721,7 +721,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'no-20',
     sourceId: 'nasa_ongoing',
     sourceName: 'NASA Ongoing HRP Research',
-    url: 'https://www.nasa.gov/hrp/ongoing-hrp-research/',
+    url: 'https://www.nasa.gov/hrp/risks/',
     title: 'Spaceflight Anemia & Red Cell Kinetics',
     metricKey: 'spo2 / bloodViability',
     conditionTriggered: '~50% accelerated RBC destruction stabilizes only weeks after flight',
@@ -732,7 +732,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'no-21',
     sourceId: 'nasa_ongoing',
     sourceName: 'NASA Ongoing HRP Research',
-    url: 'https://www.nasa.gov/hrp/ongoing-hrp-research/',
+    url: 'https://www.nasa.gov/hrp/risks/',
     title: 'Personal Wearable Acoustic Bone Monitoring',
     metricKey: 'tibialSoundSpeed',
     conditionTriggered: 'Lightweight ultrasonic monitoring replaces heavy DEXA X-ray scanners',
@@ -978,13 +978,13 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
 
   // =========================================================================
   // 5. CSA — Why Do We Conduct Science Experiments in Space? (21 items)
-  // https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp
+  // https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp
   // =========================================================================
   {
     id: 'cs-01',
     sourceId: 'csa_science',
     sourceName: 'CSA Space Science Experiments',
-    url: 'https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp',
+    url: 'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp',
     title: 'Accelerated Aging Model in Microgravity',
     metricKey: 'arterialStiffness / boneMass',
     conditionTriggered: 'Spaceflight mimics decades of aging changes in just 6 months',
@@ -995,7 +995,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'cs-02',
     sourceId: 'csa_science',
     sourceName: 'CSA Space Science Experiments',
-    url: 'https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp',
+    url: 'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp',
     title: 'Osteoporosis Mechanics Without Gravity Masking',
     metricKey: 'tibialSoundSpeed',
     conditionTriggered: 'Rapid osteoblast slowdown exposes fracture pathways cleanly',
@@ -1006,7 +1006,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'cs-03',
     sourceId: 'csa_science',
     sourceName: 'CSA Space Science Experiments',
-    url: 'https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp',
+    url: 'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp',
     title: 'Insulin Resistance & Metabolic Shifts',
     metricKey: 'calories / metabolicIndex',
     conditionTriggered: 'Sedentary fluid unloading reduces insulin sensitivity on orbit',
@@ -1017,7 +1017,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'cs-04',
     sourceId: 'csa_science',
     sourceName: 'CSA Space Science Experiments',
-    url: 'https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp',
+    url: 'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp',
     title: 'Pure Protein Crystal Growth for Earth Drugs',
     metricKey: 'smartDetectorChemistry',
     conditionTriggered: 'Zero convection lets disease target crystals grow larger and flaw-free',
@@ -1028,7 +1028,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'cs-05',
     sourceId: 'csa_science',
     sourceName: 'CSA Space Science Experiments',
-    url: 'https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp',
+    url: 'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp',
     title: 'No-Convection Bubble & Flame Combustion Physics',
     metricKey: 'cabinO2Pct / smokeAirQuality',
     conditionTriggered: 'Spherical cool flames and trapped oxygen bubbles behave uniquely in 0G',
@@ -1039,7 +1039,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'cs-06',
     sourceId: 'csa_science',
     sourceName: 'CSA Space Science Experiments',
-    url: 'https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp',
+    url: 'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp',
     title: 'Closed-Loop Bioregenerative Life Support',
     metricKey: 'waterPurityPpm / co2',
     conditionTriggered: 'Validating air/water/plant recycling before Mars transit',
@@ -1050,7 +1050,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'cs-07',
     sourceId: 'csa_science',
     sourceName: 'CSA Space Science Experiments',
-    url: 'https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp',
+    url: 'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp',
     title: 'Crew Autonomy Readiness for Mars (19-Year Prep)',
     metricKey: 'aegisWatchOfflineStatus',
     conditionTriggered: 'Proving crews can operate diagnostics independently of Earth',
@@ -1061,7 +1061,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'cs-08',
     sourceId: 'csa_science',
     sourceName: 'CSA Space Science Experiments',
-    url: 'https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp',
+    url: 'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp',
     title: 'Vascular Stiffness & Carotid Arterial Elasticity',
     metricKey: 'pulseWave',
     conditionTriggered: 'CSA Vascular Echo study tracking early blood vessel aging',
@@ -1072,7 +1072,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'cs-09',
     sourceId: 'csa_science',
     sourceName: 'CSA Space Science Experiments',
-    url: 'https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp',
+    url: 'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp',
     title: 'Biomedical Tele-Ultrasound & Non-Doctor Scanning',
     metricKey: 'tibialSoundSpeed / viability',
     conditionTriggered: 'Trained astronauts performing self-ultrasound scans without a physician',
@@ -1083,7 +1083,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'cs-10',
     sourceId: 'csa_science',
     sourceName: 'CSA Space Science Experiments',
-    url: 'https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp',
+    url: 'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp',
     title: 'TBone High-Resolution Bone Structure Insights',
     metricKey: 'trabecularStiffness',
     conditionTriggered: 'Measuring microscopic trabecular beams, not just surface density',
@@ -1094,7 +1094,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'cs-11',
     sourceId: 'csa_science',
     sourceName: 'CSA Space Science Experiments',
-    url: 'https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp',
+    url: 'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp',
     title: 'At-Home Microfluidic Blood Diagnostics',
     metricKey: 'osmometerMosm / electrolytes',
     conditionTriggered: 'CSA Bio-Analyzer shrinks refrigerator-sized labs to shoebox scale',
@@ -1105,7 +1105,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'cs-12',
     sourceId: 'csa_science',
     sourceName: 'CSA Space Science Experiments',
-    url: 'https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp',
+    url: 'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp',
     title: 'Marrow-Fat Accumulation & Blood Cell Balance',
     metricKey: 'bloodViability',
     conditionTriggered: 'CSA MARROW study linking prolonged immobility to fat inside bone marrow',
@@ -1116,7 +1116,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'cs-13',
     sourceId: 'csa_science',
     sourceName: 'CSA Space Science Experiments',
-    url: 'https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp',
+    url: 'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp',
     title: 'Continuous Bio-Monitor Shirt & Vital Telemetry',
     metricKey: 'heartRate / breathingRate',
     conditionTriggered: 'CSA Astroskin smart garment logging ECG, BP, breathing, temp continuously',
@@ -1127,7 +1127,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'cs-14',
     sourceId: 'csa_science',
     sourceName: 'CSA Space Science Experiments',
-    url: 'https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp',
+    url: 'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp',
     title: '3D Tissue Bioprinting in Weightlessness',
     metricKey: 'microgravityG',
     conditionTriggered: 'Delicate cell scaffolds hold complex 3D organ shapes without collapsing',
@@ -1138,7 +1138,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'cs-15',
     sourceId: 'csa_science',
     sourceName: 'CSA Space Science Experiments',
-    url: 'https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp',
+    url: 'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp',
     title: 'Earth Observation & Climate Disaster Coordination',
     metricKey: 'calendarMissionOps',
     conditionTriggered: 'Orbital vantage tracks ozone, wildfire smoke, and ice dynamics',
@@ -1149,7 +1149,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'cs-16',
     sourceId: 'csa_science',
     sourceName: 'CSA Space Science Experiments',
-    url: 'https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp',
+    url: 'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp',
     title: 'Vestibular Spatial Illusion ("Wayfinding")',
     metricKey: 'orientationTest',
     conditionTriggered: 'CSA Wayfinding study testing altered ceiling/floor perception in 0G',
@@ -1160,7 +1160,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'cs-17',
     sourceId: 'csa_science',
     sourceName: 'CSA Space Science Experiments',
-    url: 'https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp',
+    url: 'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp',
     title: 'Hydrodynamic Material Alloys & Optics',
     metricKey: 'furnaceTempCheck',
     conditionTriggered: 'Elements of differing weight mix uniformly without sinking in melts',
@@ -1171,7 +1171,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'cs-18',
     sourceId: 'csa_science',
     sourceName: 'CSA Space Science Experiments',
-    url: 'https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp',
+    url: 'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp',
     title: 'Robotics Tele-Surgery & Dexterous Control',
     metricKey: 'handSteadiness',
     conditionTriggered: 'Precision Canadarm / surgical robotics derived from spaceflight tech',
@@ -1182,7 +1182,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'cs-19',
     sourceId: 'csa_science',
     sourceName: 'CSA Space Science Experiments',
-    url: 'https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp',
+    url: 'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp',
     title: 'Plant Root Growth Without Gravitropism',
     metricKey: 'veggieGrowthChecklist',
     conditionTriggered: 'Crops follow LED light spectrum & moisture gradients instead of gravity',
@@ -1193,7 +1193,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'cs-20',
     sourceId: 'csa_science',
     sourceName: 'CSA Space Science Experiments',
-    url: 'https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp',
+    url: 'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp',
     title: 'Longitudinal Multi-Agency Health Archives',
     metricKey: 'personalWatchDbExport',
     conditionTriggered: 'Structured personal datasets unlock multi-year pattern discovery',
@@ -1204,7 +1204,7 @@ export const NASA_CSA_KNOWLEDGE: ResearchMiniDetail[] = [
     id: 'cs-21',
     sourceId: 'csa_science',
     sourceName: 'CSA Space Science Experiments',
-    url: 'https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp',
+    url: 'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp',
     title: 'Human Curiosity Inspiring Global Collaboration',
     metricKey: 'crewMeshStatus',
     conditionTriggered: 'International crew science shared across NASA, CSA, ESA, JAXA',
@@ -1291,3 +1291,358 @@ export const SMART_DETECTOR_CATALOG: SmartDetectorCatalogItem[] = [
     checkMetric: 'emotionsMoodScore & Folate intake',
   },
 ];
+
+export type NasaCsaBibEntry = ResearchMiniDetail;
+
+export interface BackendWatchRiskDefinition {
+  id: string;
+  category: 'NASA Hazard' | 'NASA HRP Risk' | 'CSA Radiation Monitoring';
+  title: string;
+  sourceUrl:
+    | 'https://www.nasa.gov/hrp/hazards/'
+    | 'https://www.nasa.gov/hrp/risks/'
+    | 'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp';
+  description: string;
+  monitoredMetrics: string[];
+  countermeasureAction: string;
+}
+
+/**
+ * Complete backend environmental metrics, health hazards, and spaceflight risks catalog
+ * for the Aegis Watch system (5 NASA Hazards + 17 NASA HRP Risks + CSA CANS Radiation Monitoring).
+ */
+export const BACKEND_WATCH_HEALTH_AND_RISKS_CATALOG: BackendWatchRiskDefinition[] = [
+  // 5 Core NASA Hazards (https://www.nasa.gov/hrp/hazards/)
+  {
+    id: 'hazard-space-radiation',
+    category: 'NASA Hazard',
+    title: 'Space Radiation (Solar Flare & Galactic Cosmic Rays)',
+    sourceUrl: 'https://www.nasa.gov/hrp/hazards/',
+    description:
+      'Invisible to the human eye, space radiation is not only stealthy but considered one of the most hazardous aspects of spaceflight.',
+    monitoredMetrics: ['radiationRate', 'neutronDoseCans', 'protonGcrDose'],
+    countermeasureAction: 'Move to water-shielded storm shelter when radiation exceeds 45 uSv/h.',
+  },
+  {
+    id: 'hazard-isolation-confinement',
+    category: 'NASA Hazard',
+    title: 'Isolation and Confinement',
+    sourceUrl: 'https://www.nasa.gov/hrp/hazards/',
+    description:
+      'Behavioral responses occur among groups of people far from Earth who are isolated and confined in a small space over a long period of time.',
+    monitoredMetrics: ['moodScore', 'sleepHours', 'emotionsTrend'],
+    countermeasureAction: 'Log daily mood, play relaxing brain games, and connect with crewmates.',
+  },
+  {
+    id: 'hazard-distance-from-earth',
+    category: 'NASA Hazard',
+    title: 'Distance from Earth',
+    sourceUrl: 'https://www.nasa.gov/hrp/hazards/',
+    description:
+      'Instructions, new supplies, medical care, and more become increasingly challenging to receive from Earth as astronauts venture deeper into space.',
+    monitoredMetrics: ['aegisAiOfflineMode', 'waterIntakeMl', 'nutritionCalories'],
+    countermeasureAction: 'Use autonomous offline watch health checks and local medical guidance.',
+  },
+  {
+    id: 'hazard-gravity-fields',
+    category: 'NASA Hazard',
+    title: 'Gravity Fields',
+    sourceUrl: 'https://www.nasa.gov/hrp/hazards/',
+    description:
+      "Astronauts' entire bodies – muscles, bones, inner ear, and organs – must adjust to the new gravities encountered on the space station or their spacecraft, as well as on the Moon, Mars, and Earth once they return home.",
+    monitoredMetrics: ['tibialSoundSpeed', 'boneMass', 'systolicBp', 'heartRate'],
+    countermeasureAction: 'Complete daily resistance squats, treadmill walks, and hydration.',
+  },
+  {
+    id: 'hazard-hostile-closed-environments',
+    category: 'NASA Hazard',
+    title: 'Hostile/Closed Environments',
+    sourceUrl: 'https://www.nasa.gov/hrp/hazards/',
+    description:
+      'Maintaining a safe ecosystem inside a spacecraft presents unique challenges, from ensuring optimal temperatures, pressures, and lighting, to reducing noise, monitoring microbial communities, and tracking immune responses.',
+    monitoredMetrics: ['cabinCo2', 'barometerKpa', 'acousticDb', 'airQualityAqi', 'waterPurityPpm'],
+    countermeasureAction: 'Turn air fans high when CO2 rises and monitor room temperature and noise.',
+  },
+
+  // 17 Specific NASA HRP Risks (https://www.nasa.gov/hrp/risks/)
+  {
+    id: 'risk-altered-immune-system',
+    category: 'NASA HRP Risk',
+    title: 'Risk of Altered Immune System Responses',
+    sourceUrl: 'https://www.nasa.gov/hrp/risks/',
+    description:
+      'The stresses of spaceflight can awaken inactive viruses inside the bodies of astronauts, leading to rashes and other symptoms. Ongoing work seeks to further understand changes in the immune system to better protect astronaut health.',
+    monitoredMetrics: ['coreTemp', 'sleepHours', 'sweatSodium'],
+    countermeasureAction: 'Keep sleep above 7 hours, eat vitamin-rich greens, and lower stress.',
+  },
+  {
+    id: 'risk-sensorimotor-vestibular',
+    category: 'NASA HRP Risk',
+    title: 'Risk of Altered Sensorimotor and Vestibular Function',
+    sourceUrl: 'https://www.nasa.gov/hrp/risks/',
+    description:
+      'Astronauts can experience motion sickness, issues with hand-eye or gait coordination, and dizziness during gravitational changes, making it difficult to walk or operate a vehicle.',
+    monitoredMetrics: ['steps', 'reflexReactionMs', 'heartRate'],
+    countermeasureAction: 'Practice hand-eye reflex drills and move slowly during gravity changes.',
+  },
+  {
+    id: 'risk-cardiovascular-adaptations',
+    category: 'NASA HRP Risk',
+    title: 'Risk of Cardiovascular Adaptations',
+    sourceUrl: 'https://www.nasa.gov/hrp/risks/',
+    description:
+      'Weightlessness alters blood circulation and how the heart and blood vessels function, potentially increasing the risk of cardiovascular events.',
+    monitoredMetrics: ['heartRate', 'systolicBp', 'diastolicBp'],
+    countermeasureAction: 'Perform aerobic bike/treadmill workouts and breathe slowly if BP spikes.',
+  },
+  {
+    id: 'risk-decompression-sickness',
+    category: 'NASA HRP Risk',
+    title: 'Risk of Decompression Sickness',
+    sourceUrl: 'https://www.nasa.gov/hrp/risks/',
+    description:
+      'Transitioning from a pressurized spacecraft to a lower-pressure spacesuit can cause health and mission complications when dissolved nitrogen starts to bubble within body tissues.',
+    monitoredMetrics: ['suitDeltaPKpa', 'barometerKpa', 'spo2'],
+    countermeasureAction: 'Complete oxygen pre-breathe protocol before starting any spacewalk.',
+  },
+  {
+    id: 'risk-host-microorganism-interactions',
+    category: 'NASA HRP Risk',
+    title: 'Risk of Host-Microorganism Interactions',
+    sourceUrl: 'https://www.nasa.gov/hrp/risks/',
+    description:
+      'Skin and gut microbiomes can change in space, potentially increasing the risk of crew members getting sick.',
+    monitoredMetrics: ['coreTemp', 'waterPurityPpm', 'nutritionFiber'],
+    countermeasureAction: 'Eat probiotic and fiber-rich meals and keep cabin surfaces clean.',
+  },
+  {
+    id: 'risk-hypoxia',
+    category: 'NASA HRP Risk',
+    title: 'Risk of Hypoxia',
+    sourceUrl: 'https://www.nasa.gov/hrp/risks/',
+    description:
+      'Astronauts on future deep space missions will take steps to avoid “the bends” during spacewalks, but following those steps also elevates the risk of mild hypoxia — a condition that occurs when oxygen levels in body tissues become lower than normal.',
+    monitoredMetrics: ['spo2', 'cabinO2Pct'],
+    countermeasureAction: 'Boost suit oxygen flow immediately if SpO2 drops below 94%.',
+  },
+  {
+    id: 'risk-inadequate-food-nutrition',
+    category: 'NASA HRP Risk',
+    title: 'Risk of Inadequate Food and Nutrition',
+    sourceUrl: 'https://www.nasa.gov/hrp/risks/',
+    description:
+      'A healthy, balanced diet is an essential element of crew health and performance. Ongoing research focuses on designing enjoyable, long-lasting, and nutritious meals for deep space missions.',
+    monitoredMetrics: ['calories', 'calciumMg', 'waterIntakeMl'],
+    countermeasureAction: 'Log broccoli, egg, fish, and 2,400 mL water daily.',
+  },
+  {
+    id: 'risk-spacewalk-injury-performance',
+    category: 'NASA HRP Risk',
+    title: 'Risk of Injury and Compromised Performance from Spacewalks',
+    sourceUrl: 'https://www.nasa.gov/hrp/risks/',
+    description:
+      'Working in a spacesuit is challenging. In addition to cognitive fatigue and injury, crew members must also manage risks in the spacewalk environment, including decompression sickness, and low oxygen and high carbon dioxide levels.',
+    monitoredMetrics: ['suitDeltaPKpa', 'spo2', 'cabinCo2', 'heartRate'],
+    countermeasureAction: 'Monitor suit pressure, oxygen, and CO2 continuously during spacewalks.',
+  },
+  {
+    id: 'risk-reduced-fitness',
+    category: 'NASA HRP Risk',
+    title: 'Risk of Reduced Cardiorespiratory and Musculoskeletal Fitness',
+    sourceUrl: 'https://www.nasa.gov/hrp/risks/',
+    description:
+      'All astronauts perform exercise during their mission to counteract losses in bone density, muscle strength, and heart and blood vessel performance.',
+    monitoredMetrics: ['steps', 'tibialSoundSpeed', 'heartRate'],
+    countermeasureAction: 'Complete daily ARED squats, treadmill running, and cycle workouts.',
+  },
+  {
+    id: 'risk-sans-viip',
+    category: 'NASA HRP Risk',
+    title: 'Risk of Spaceflight Associated Neuro-ocular Syndrome (SANS / VIIP)',
+    sourceUrl: 'https://www.nasa.gov/hrp/risks/',
+    description:
+      'Visual Impairment Intracranial Pressure (VIIP) / SANS: The structure of the eyes and brain can change with spaceflight due to headward fluid shifts.',
+    monitoredMetrics: ['systolicBp', 'sodiumMg'],
+    countermeasureAction: 'Use lower-body leg cuffs and keep daily salt intake low.',
+  },
+  {
+    id: 'risk-bone-changes',
+    category: 'NASA HRP Risk',
+    title: 'Risk of Spaceflight-Induced Bone Changes',
+    sourceUrl: 'https://www.nasa.gov/hrp/risks/',
+    description:
+      'Without gravity, bones break down and become more brittle, boosting the chances of painful breaks. Ongoing research seeks to preserve bone strength through diet, exercise, and medication.',
+    monitoredMetrics: ['tibialSoundSpeed', 'boneMass', 'calciumMg'],
+    countermeasureAction: 'Keep shin bone speed above 3,750 m/s with squats and calcium.',
+  },
+  {
+    id: 'risk-behavioral-psychiatric',
+    category: 'NASA HRP Risk',
+    title: 'Risk of Behavioral Changes and Psychiatric Disorders',
+    sourceUrl: 'https://www.nasa.gov/hrp/risks/',
+    description:
+      'Isolation, radiation, distance from Earth, and other intense space stressors may all take a toll on the mental health of the crew.',
+    monitoredMetrics: ['selectedMood', 'sleepHours'],
+    countermeasureAction: 'Check in on mood daily, listen to calm space music, and rest.',
+  },
+  {
+    id: 'risk-inadequate-teamwork',
+    category: 'NASA HRP Risk',
+    title: 'Risk of Inadequate Teamwork',
+    sourceUrl: 'https://www.nasa.gov/hrp/risks/',
+    description:
+      'Selecting a crew that works well together is essential for mission success and safety. Researchers study how to help teams in prolonged isolation function efficiently and recover after setbacks.',
+    monitoredMetrics: ['peerSignalStatus', 'crewSyncCount'],
+    countermeasureAction: 'Coordinate crew tasks and respond immediately to peer rescue alerts.',
+  },
+  {
+    id: 'risk-inadequate-sleep-schedules',
+    category: 'NASA HRP Risk',
+    title: 'Risk of Inadequate Sleep and Irregular Schedules',
+    sourceUrl: 'https://www.nasa.gov/hrp/risks/',
+    description:
+      'Space crews experience multiple hazards simultaneously. Stressors include chronic sleep loss, constant work demands, and irregularities in their internal biological clocks.',
+    monitoredMetrics: ['sleepHours', 'sleepScore'],
+    countermeasureAction: 'Follow bright morning light and dim evening light schedules.',
+  },
+  {
+    id: 'risk-inadequate-systems-support',
+    category: 'NASA HRP Risk',
+    title: 'Risk of Inadequate Systems Operations Support',
+    sourceUrl: 'https://www.nasa.gov/hrp/risks/',
+    description:
+      'Future crews on deep space missions must be able to live and work in an environment where they may face unexpected problems with software, vehicles, or other systems.',
+    monitoredMetrics: ['watchBatteryPct', 'shinPatchWet'],
+    countermeasureAction: 'Follow simple step-by-step watch alerts when a sensor or system faults.',
+  },
+  {
+    id: 'risk-dynamic-loads-injury',
+    category: 'NASA HRP Risk',
+    title: 'Risk of Injury from Dynamic Loads',
+    sourceUrl: 'https://www.nasa.gov/hrp/risks/',
+    description:
+      'During landing activities, crews risk getting injured. Preserving bone density, core strength, and hydration helps protect astronauts during landing impacts.',
+    monitoredMetrics: ['boneMass', 'waterIntakeMl'],
+    countermeasureAction: 'Keep bone mass above 1.05 g/cm² and drink electrolyte water before landing.',
+  },
+  {
+    id: 'risk-radiation-induced-cancers',
+    category: 'NASA HRP Risk',
+    title: 'Risk of Radiation-Induced Cancers',
+    sourceUrl: 'https://www.nasa.gov/hrp/risks/',
+    description:
+      'Crews exposed to radiation from space may be more likely to develop cancer. Identifying the best ways to mitigate this risk and understand what interventions may help are ongoing research priorities.',
+    monitoredMetrics: ['radiationRate', 'neutronDoseCans'],
+    countermeasureAction: 'Track cumulative radiation dose and eat berry/antioxidant rations.',
+  },
+
+  // CSA Monitoring Radiation for Astronaut Health (2026-02-26)
+  {
+    id: 'csa-cans-neutron-monitoring',
+    category: 'CSA Radiation Monitoring',
+    title: 'CSA Canadian Active Neutron Spectrometer (CANS)',
+    sourceUrl:
+      'https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp',
+    description:
+      'CSA awarded a $5.5M contract to Bubble Technology Industries for CANS, building on MOSFET, EVARM, Radi-N, and Radi-N2 bubble detectors (used by David Saint-Jacques on the ISS) to autonomously measure neutron radiation (~30% of total ISS radiation) with spin-offs for cancer therapy, aircrews, and public safety.',
+    monitoredMetrics: ['neutronDoseCans', 'radiationRate'],
+    countermeasureAction: 'Monitor real-time neutron radiation (~30% of orbital dose) continuously on wrist.',
+  },
+];
+
+export function evaluateWatchSystemRisks(inputs: {
+  radiationRate: number;
+  systolicBp: number;
+  diastolicBp: number;
+  heartRate: number;
+  spo2: number;
+  tibialSoundSpeed: number;
+  cabinCo2: number;
+  sweatSodium: number;
+  coreTemp: number;
+  sleepHours: number;
+  shinPatchWet?: boolean;
+}) {
+  const activeRisks: Array<{ id: string; title: string; severity: 'warning' | 'critical'; action: string }> = [];
+
+  if (inputs.radiationRate > 45) {
+    activeRisks.push({
+      id: 'risk-radiation-induced-cancers',
+      title: 'Space Radiation & Neutron Spike (CSA CANS)',
+      severity: 'critical',
+      action: 'Go to safe shielded room now.',
+    });
+  }
+  if (inputs.systolicBp >= 140) {
+    activeRisks.push({
+      id: 'risk-cardiovascular-adaptations',
+      title: 'Cardiovascular & SANS Fluid Shift Risk',
+      severity: 'critical',
+      action: 'Sit down and breathe slowly.',
+    });
+  }
+  if (inputs.spo2 < 94) {
+    activeRisks.push({
+      id: 'risk-hypoxia',
+      title: 'Risk of Hypoxia (Low Tissue Oxygen)',
+      severity: 'critical',
+      action: 'Check suit oxygen flow immediately.',
+    });
+  }
+  if (inputs.tibialSoundSpeed < 3750) {
+    activeRisks.push({
+      id: 'risk-bone-changes',
+      title: 'Spaceflight-Induced Bone Changes',
+      severity: 'warning',
+      action: 'Eat calcium food and do squats.',
+    });
+  }
+  if (inputs.cabinCo2 > 4.0) {
+    activeRisks.push({
+      id: 'hazard-hostile-closed-environments',
+      title: 'Hostile/Closed Environment CO2 Pocket',
+      severity: 'warning',
+      action: 'Turn air fan to high speed.',
+    });
+  }
+  if (inputs.sleepHours < 6.5) {
+    activeRisks.push({
+      id: 'risk-inadequate-sleep-schedules',
+      title: 'Inadequate Sleep & Irregular Schedule',
+      severity: 'warning',
+      action: 'Dim lights and rest early tonight.',
+    });
+  }
+  if (inputs.shinPatchWet) {
+    activeRisks.push({
+      id: 'risk-inadequate-systems-support',
+      title: 'Systems Sensor Contact Warning',
+      severity: 'warning',
+      action: 'Wipe leg sensor pad dry.',
+    });
+  }
+
+  return {
+    totalCatalogCount: BACKEND_WATCH_HEALTH_AND_RISKS_CATALOG.length,
+    activeRisksCount: activeRisks.length,
+    activeRisks,
+  };
+}
+
+export function grepNasaCsaBibliography(query: string, limit = 6): ResearchMiniDetail[] {
+  const tokens = query
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((t) => t.length > 2);
+  if (tokens.length === 0) return NASA_CSA_KNOWLEDGE.slice(0, limit);
+  const scored = NASA_CSA_KNOWLEDGE.map((item) => {
+    const hay = `${item.title} ${item.metricKey} ${item.conditionTriggered} ${item.watchAction} ${item.plainSummary}`.toLowerCase();
+    const hits = tokens.reduce((acc, tok) => acc + (hay.includes(tok) ? 1 : 0), 0);
+    return { item, hits };
+  })
+    .filter((x) => x.hits > 0)
+    .sort((a, b) => b.hits - a.hits);
+  return (scored.length > 0 ? scored.map((s) => s.item) : NASA_CSA_KNOWLEDGE).slice(0, limit);
+}
+
+

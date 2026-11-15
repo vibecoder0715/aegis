@@ -238,9 +238,9 @@ export const WatchShowcaseView: React.FC<WatchShowcaseViewProps> = ({
         <div className="relative z-10 w-full p-6 sm:p-10 sm:max-w-[60%] lg:max-w-[58%]">
           <h1
             aria-label="Aegis Watch"
-            className="flex flex-wrap items-center gap-2 sm:gap-2.5 text-3xl sm:text-5xl font-extrabold tracking-tight text-[#07152E] mb-5 sm:mb-6"
+            className="flex flex-wrap items-center gap-2.5 sm:gap-3 text-3xl sm:text-5xl font-extrabold tracking-tight text-[#07152E] mb-5 sm:mb-6"
           >
-            <AegisWordmarkSvg height={44} className="h-8 sm:h-11 w-auto" />
+            <AegisWordmarkSvg height={53} className="h-10 sm:h-[53px] w-auto" />
             <span>Watch</span>
           </h1>
 

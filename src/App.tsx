@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Watch, Users } from 'lucide-react';
+import { Watch, Users, PlayCircle } from 'lucide-react';
 import {
-  SituationId,
   buildInitialCrew,
   CrewMember,
   DEFAULT_SENSOR_INPUTS,
@@ -10,6 +9,7 @@ import {
 } from './utils/metricsEngine';
 import { CommanderDashboardView } from './components/CommanderDashboardView';
 import { WatchShowcaseView } from './components/WatchShowcaseView';
+import { DemonstrationView } from './components/DemonstrationView';
 import { AegisWordmarkSvg } from './components/AegisBrandLogo';
 import { OfflineIndicator, PWAInstallButton } from './components/PWAInstallButton';
 import {
@@ -27,7 +27,7 @@ import {
   WatchQuickAction,
 } from '../watch/togglerEngine';
 
-type ActiveTab = 'watch' | 'commander';
+type ActiveTab = 'watch' | 'demonstration' | 'commander';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('watch');
@@ -65,7 +65,6 @@ export default function App() {
   const syncAllFromTogglerState = (nextState: UnifiedTogglerState) => {
     setTogglerState(nextState);
 
-    // Keep Watch DB extraEnv, batteryPct & sleep stages aligned with togglers
     handleUpdateWatchDb((prev) => ({
       ...prev,
       extraEnv: nextState.extraEnv,
@@ -76,7 +75,6 @@ export default function App() {
       },
     }));
 
-    // Keep Monitoring Dashboard Crew #1 vitals synced cleanly with toggler state
     const { boneMass } = computeBoneMetricsFromSoundWave(nextState.inputs.tibialSoundSpeed);
     const activeAlert = evaluateWatchAlertFromState(nextState);
     setCrew((prev) =>
@@ -165,13 +163,14 @@ export default function App() {
   };
 
   const NAV_ITEMS: Array<{ id: ActiveTab; label: string; mobileLabel: string; icon: typeof Watch }> = [
-    { id: 'watch', label: 'Aegis Watch', mobileLabel: 'Aegis Watch', icon: Watch },
-    { id: 'commander', label: 'Monitoring Dashboard', mobileLabel: 'Dashboard', icon: Users },
+    { id: 'watch', label: 'Aegis Watch', mobileLabel: 'Watch', icon: Watch },
+    { id: 'demonstration', label: 'Demonstration', mobileLabel: 'Demo', icon: PlayCircle },
+    { id: 'commander', label: 'Aegis Board', mobileLabel: 'Board', icon: Users },
   ];
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex flex-col overflow-x-hidden">
-      {/* Clean 3-Zone Header: Brand Wordmark · Desktop Nav · PWA Install */}
+      {/* Clean 3-Zone Header: Brand Wordmark · Desktop Nav · Slide Deck + Github */}
       <header className="border-b border-slate-200 bg-white/95 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-8 lg:px-10 py-3">
         <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-4">
           <a
@@ -226,6 +225,7 @@ export default function App() {
             onResetNominal={handleResetNominal}
           />
         )}
+        {activeTab === 'demonstration' && <DemonstrationView />}
         {activeTab === 'commander' && (
           <CommanderDashboardView
             crew={crew}
@@ -242,7 +242,7 @@ export default function App() {
         aria-label="Mobile Page Selector"
         className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-2xl px-3 py-2"
       >
-        <div className="max-w-md mx-auto grid grid-cols-2 gap-2">
+        <div className="max-w-md mx-auto grid grid-cols-3 gap-1.5">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const active = activeTab === item.id;
@@ -255,13 +255,13 @@ export default function App() {
                   setActiveTab(item.id);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-2xl font-extrabold text-xs transition cursor-pointer min-h-[44px] whitespace-nowrap ${
+                className={`flex items-center justify-center gap-1 py-2.5 px-1.5 rounded-2xl font-extrabold text-xs transition cursor-pointer min-h-[44px] whitespace-nowrap ${
                   active
                     ? 'bg-[#07152E] text-white shadow-sm'
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
-                <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-amber-300' : 'text-slate-600'}`} />
+                <Icon className={`w-3.5 h-3.5 shrink-0 ${active ? 'text-amber-300' : 'text-slate-600'}`} />
                 <span>{item.mobileLabel}</span>
               </button>
             );

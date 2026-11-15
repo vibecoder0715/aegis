@@ -86,11 +86,14 @@ export default defineConfig({
     {
       name: 'disable-vite-hmr-ws',
       transform(code, id) {
+        if (id.includes('pwa-entry-point-loaded')) {
+          return 'export {};';
+        }
         if (id.includes('vite/dist/client/client.mjs')) {
-          return code.replace(
-            /await wsTransport\.connect\(handlers\);/g,
-            'return;'
-          );
+          return code
+            .replace(/await wsTransport\.connect\(handlers\);/g, 'return;')
+            .replace(/ws\.send\(JSON\.stringify\(data\)\);/g, 'ws?.send?.(JSON.stringify(data));')
+            .replace(/wsTransport\.send\(data\);/g, 'return;');
         }
         return null;
       },

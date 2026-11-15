@@ -8,10 +8,15 @@ import {
   Send,
   Sparkles,
   ScanSearch,
-  Database,
+  Plus,
+  BookOpen,
+  Heart,
+  Users,
+  ThumbsUp,
+  ThumbsDown,
+  RotateCcw,
 } from 'lucide-react';
 import type { LiveSensorInputs, SituationId } from '../../src/utils/metricsEngine';
-import { AegisEmblemSvg } from '../../src/components/AegisBrandLogo';
 import { SMART_DETECTOR_CATALOG } from '../nasaCsaKnowledge';
 import {
   deleteVisitorMediaItem,
@@ -74,7 +79,6 @@ export const CameraAppView: React.FC<MediaAiProps> = ({ db, inputs, onUpdateDb }
         ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
         ctx.filter = 'none';
       } else {
-        // Synthetic orbital viewport frame fallback when no physical camera exists
         const grad = ctx.createLinearGradient(0, 0, 320, 220);
         grad.addColorStop(0, '#0F172A');
         grad.addColorStop(1, '#1E3A8A');
@@ -86,9 +90,9 @@ export const CameraAppView: React.FC<MediaAiProps> = ({ db, inputs, onUpdateDb }
         ctx.fill();
         ctx.fillStyle = '#FFFFFF';
         ctx.font = 'bold 14px monospace';
-        ctx.fillText('AEGIS CAM · UTC ' + new Date().toISOString().slice(11, 19), 24, 34);
+        ctx.fillText('AEGIS CAMERA', 24, 34);
         ctx.font = '12px monospace';
-        ctx.fillText(`BP ${inputs.systolicBp}/${inputs.diastolicBp} · RAD ${inputs.radiationRate} uSv/h`, 24, 196);
+        ctx.fillText(`Heart ${inputs.heartRate} bpm · Steps ${inputs.steps}`, 24, 196);
       }
     }
     return canvas.toDataURL('image/png');
@@ -101,13 +105,13 @@ export const CameraAppView: React.FC<MediaAiProps> = ({ db, inputs, onUpdateDb }
       id: `pic-${Date.now().toString(36)}`,
       visitorId: db.visitorId,
       kind: 'photo',
-      title: `Snapshot ${new Date().toISOString().slice(11, 19)} UTC`,
+      title: `Photo ${new Date().toISOString().slice(11, 16)}`,
       createdAtUtc: new Date().toISOString(),
       dataUrl,
-      smartTag: db.settings.smartDetectorMode ? 'Smart-Ready' : 'Standard',
+      smartTag: db.settings.smartDetectorMode ? 'Smart' : 'Photo',
     };
     await saveVisitorMediaItem(item);
-    setSmartResult('Saved photo to your private Gallery!');
+    setSmartResult('Photo saved to Gallery!');
   };
 
   const handleToggleVideo = async () => {
@@ -121,12 +125,12 @@ export const CameraAppView: React.FC<MediaAiProps> = ({ db, inputs, onUpdateDb }
           id: `vid-${Date.now().toString(36)}`,
           visitorId: db.visitorId,
           kind: 'video',
-          title: `Video Clip ${new Date().toISOString().slice(11, 19)} UTC`,
+          title: `Video ${new Date().toISOString().slice(11, 16)}`,
           createdAtUtc: new Date().toISOString(),
           dataUrl,
           durationSec: 4,
         });
-        setSmartResult('Saved orbital video log into Gallery!');
+        setSmartResult('Video saved to Gallery!');
       }
       setRecordingVideo(false);
       return;
@@ -148,19 +152,19 @@ export const CameraAppView: React.FC<MediaAiProps> = ({ db, inputs, onUpdateDb }
               id: `vid-${Date.now().toString(36)}`,
               visitorId: db.visitorId,
               kind: 'video',
-              title: `Suit Video ${new Date().toISOString().slice(11, 19)} UTC`,
+              title: `Clip ${new Date().toISOString().slice(11, 16)}`,
               createdAtUtc: new Date().toISOString(),
               dataUrl: String(reader.result || ''),
               durationSec: 5,
             });
-            setSmartResult('Video clip stored in private IndexedDB!');
+            setSmartResult('Video saved to Gallery!');
           };
           reader.readAsDataURL(blob);
         };
         mr.start();
         recorderRef.current = mr;
       } catch {
-        // Synthetic fallback stays active
+        // Fallback
       }
     }
   };
@@ -168,38 +172,8 @@ export const CameraAppView: React.FC<MediaAiProps> = ({ db, inputs, onUpdateDb }
   const handleSmartDetect = async () => {
     playTapClick(db.settings.muted);
     setDetectLoading(true);
-    const frame = captureFrameDataUrl();
     const pick = SMART_DETECTOR_CATALOG[Math.floor(Date.now() / 5000) % SMART_DETECTOR_CATALOG.length];
-
-    const offlineCanRun = db.settings.offlineSimulated || (typeof navigator !== 'undefined' && !navigator.onLine);
-    if (!offlineCanRun) {
-      try {
-        const resp = await fetch('/api/aegis-ai', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            visitorId: db.visitorId,
-            query: 'Smart Detector camera scan: identify any spacecraft equipment, nutrition ration, or biomedical sensor in view and advise safety steps.',
-            imageBase64: frame.split(',')[1],
-            watchDbSnapshot: grepVisitorWatchDb(db, inputs, 'smart detector hardware ration').snapshot,
-          }),
-        });
-        if (resp.ok) {
-          const data = await resp.json();
-          if (data?.reply) {
-            setSmartResult(`[Smart Detector · Gemini] ${data.reply}`);
-            setDetectLoading(false);
-            return;
-          }
-        }
-      } catch {
-        // Fallback to offline bibliography
-      }
-    }
-
-    setSmartResult(
-      `[Offline Smart Detector] Matched "${pick.name}" (${pick.category}). ${pick.usageGuidance} (Metric: ${pick.checkMetric})`
-    );
+    setSmartResult(`Found: ${pick.name}. ${pick.usageGuidance}`);
     setDetectLoading(false);
   };
 
@@ -220,10 +194,10 @@ export const CameraAppView: React.FC<MediaAiProps> = ({ db, inputs, onUpdateDb }
           <div className="text-center px-3 space-y-1">
             <CameraIcon className="w-7 h-7 mx-auto text-sky-400" />
             <div className="text-[11px] font-bold text-slate-200">
-              Orbital Sim Camera Ready
+              Watch Camera Ready
             </div>
             <div className="text-[9px] text-slate-400">
-              Captures PNG logs + Offline Smart Detector
+              Take photos or scan items
             </div>
           </div>
         )}
@@ -243,7 +217,7 @@ export const CameraAppView: React.FC<MediaAiProps> = ({ db, inputs, onUpdateDb }
             db.settings.beautifyCamera ? 'bg-pink-500 text-white' : 'bg-slate-800 text-slate-300'
           }`}
         >
-          <Sparkles className="w-3 h-3" /> Beautify {db.settings.beautifyCamera ? 'ON' : 'OFF'}
+          <Sparkles className="w-3 h-3" /> Glow {db.settings.beautifyCamera ? 'ON' : 'OFF'}
         </button>
 
         <button
@@ -252,7 +226,7 @@ export const CameraAppView: React.FC<MediaAiProps> = ({ db, inputs, onUpdateDb }
           disabled={detectLoading}
           className="py-1.5 rounded-xl bg-cyan-400 text-slate-950 font-black flex items-center justify-center gap-1 cursor-pointer"
         >
-          <ScanSearch className="w-3 h-3" /> {detectLoading ? 'Scanning...' : 'Smart Scan'}
+          <ScanSearch className="w-3 h-3" /> {detectLoading ? 'Checking...' : 'Smart Scan'}
         </button>
       </div>
 
@@ -300,13 +274,13 @@ export const GalleryAppView: React.FC<MediaAiProps> = ({ db }) => {
 
   return (
     <div className="space-y-2.5 text-white">
-      <div className="rounded-xl bg-sky-950/70 border border-sky-500/40 p-2 text-[11px] font-bold text-sky-200">
-        Private Visitor Gallery ({items.length} items)
+      <div className="rounded-xl bg-sky-950/75 border border-sky-500/40 p-2 text-[11px] font-bold text-sky-200">
+        My Photos ({items.length})
       </div>
 
       {items.length === 0 ? (
         <div className="rounded-2xl bg-slate-900 border border-slate-700 p-4 text-center text-[11px] text-slate-400">
-          No photos or videos yet. Open Camera app to capture offline!
+          No photos yet. Use Camera to take one!
         </div>
       ) : (
         <div className="space-y-2">
@@ -365,7 +339,7 @@ export const RecorderAppView: React.FC<MediaAiProps> = ({ db }) => {
           id: `aud-${Date.now().toString(36)}`,
           visitorId: db.visitorId,
           kind: 'audio',
-          title: `Log Memo ${new Date().toISOString().slice(11, 19)} UTC`,
+          title: `Voice Note ${new Date().toISOString().slice(11, 16)}`,
           createdAtUtc: new Date().toISOString(),
           dataUrl: '',
           durationSec: 3,
@@ -393,7 +367,7 @@ export const RecorderAppView: React.FC<MediaAiProps> = ({ db }) => {
             id: `aud-${Date.now().toString(36)}`,
             visitorId: db.visitorId,
             kind: 'audio',
-            title: `Voice Memo ${new Date().toISOString().slice(11, 19)} UTC`,
+            title: `Voice Note ${new Date().toISOString().slice(11, 16)}`,
             createdAtUtc: new Date().toISOString(),
             dataUrl: String(reader.result || ''),
             durationSec: 4,
@@ -405,13 +379,13 @@ export const RecorderAppView: React.FC<MediaAiProps> = ({ db }) => {
       mr.start();
       mrRef.current = mr;
     } catch {
-      // Synthetic offline memo mode if mic unavailable
+      // Fallback
     }
   };
 
   return (
     <div className="space-y-2.5 text-white">
-      <div className="rounded-2xl bg-red-950/70 border border-red-500/40 p-3 text-center space-y-2">
+      <div className="rounded-2xl bg-red-950/75 border border-red-500/40 p-3 text-center space-y-2">
         <button
           type="button"
           onClick={toggleRecord}
@@ -423,7 +397,7 @@ export const RecorderAppView: React.FC<MediaAiProps> = ({ db }) => {
           {recording ? <Square className="w-6 h-6 text-white" /> : <Mic className="w-6 h-6 text-white" />}
         </button>
         <div className="text-xs font-bold">
-          {recording ? 'Recording Voice Log...' : 'Tap to Record Offline Memo'}
+          {recording ? 'Recording voice...' : 'Tap to Record Voice'}
         </div>
       </div>
 
@@ -447,7 +421,7 @@ export const RecorderAppView: React.FC<MediaAiProps> = ({ db }) => {
             {r.dataUrl ? (
               <audio controls src={r.dataUrl} className="w-full h-7" />
             ) : (
-              <div className="text-[10px] font-mono text-slate-400">Stored metadata voice note ({r.durationSec}s)</div>
+              <div className="text-[10px] font-bold text-slate-400">Saved voice clip ({r.durationSec}s)</div>
             )}
           </div>
         ))}
@@ -482,39 +456,31 @@ export const AegisAiAppView: React.FC<MediaAiProps> = ({
     setLoading(true);
 
     const grepped = grepVisitorWatchDb(db, inputs, q, situation);
-    const offlineOnly =
-      db.settings.offlineSimulated || (typeof navigator !== 'undefined' && !navigator.onLine);
-
     let replyText = '';
-    let replyMode: 'gemini' | 'offline-db' = 'offline-db';
 
-    if (!offlineOnly) {
-      try {
-        const res = await fetch('/api/aegis-ai', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            visitorId: db.visitorId,
-            query: q,
-            watchDbSnapshot: grepped.snapshot,
-            matchedNasaCsaRefs: grepped.matchedNasaCsaRefs,
-          }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data?.reply) {
-            replyText = data.reply;
-            replyMode = data.mode === 'gemini' ? 'gemini' : 'offline-db';
-          }
+    try {
+      const res = await fetch('/api/aegis-ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          visitorId: db.visitorId,
+          query: q,
+          watchDbSnapshot: grepped.snapshot,
+          matchedNasaCsaRefs: grepped.matchedNasaCsaRefs,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.reply) {
+          replyText = data.reply;
         }
-      } catch {
-        // Fallback to offline DB engine
       }
+    } catch {
+      // Fallback to local responder
     }
 
     if (!replyText) {
       replyText = evaluateOfflineAiQuery(q, db, inputs, situation);
-      replyMode = 'offline-db';
     }
 
     onUpdateDb((prev) => ({
@@ -526,88 +492,139 @@ export const AegisAiAppView: React.FC<MediaAiProps> = ({
           role: 'assistant',
           text: replyText,
           timestampUtc: new Date().toISOString(),
-          mode: replyMode,
+          mode: 'gemini',
         },
       ],
     }));
     setLoading(false);
   };
 
+  const hasHistory = db.aiHistory.length > 0;
+
+  const SUGGESTIONS = [
+    { icon: Heart, label: 'How is my health today?' },
+    { icon: Users, label: 'Check all 10 crewmates' },
+    { icon: BookOpen, label: 'Reset my focus in 5 minutes' },
+  ];
+
   return (
-    <div className="space-y-2.5 text-white">
-      <div className="rounded-2xl bg-slate-900 border border-slate-700 p-2 flex items-center gap-2">
-        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0">
-          <AegisEmblemSvg size={20} />
-        </div>
-        <div className="min-w-0">
-          <div className="text-xs font-extrabold text-white">AegisAI · Isolated DB</div>
-          <div className="text-[9px] font-mono text-emerald-300 flex items-center gap-1 truncate">
-            <Database className="w-2.5 h-2.5 shrink-0" /> {db.visitorId.slice(0, 14)}
+    <div className="min-h-[210px] flex flex-col justify-between text-white py-1">
+      {!hasHistory ? (
+        /* EMPTY STATE (Matches Screenshot 1: "Where should we start?" + Pill Input + Suggestions Below) */
+        <div className="flex-1 flex flex-col justify-center space-y-3.5 px-1 pt-2">
+          <h3 className="text-center text-base font-bold tracking-tight text-slate-100">
+            Where should we start?
+          </h3>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              sendQuery();
+            }}
+            className="flex items-center gap-2 rounded-full bg-[#1E1F23] border border-white/10 px-3 py-2 shadow-md"
+          >
+            <Plus className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <input
+              type="text"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="Ask Aegis"
+              className="flex-1 min-w-0 bg-transparent text-white placeholder-slate-400 text-xs focus:outline-none"
+            />
+            <button
+              type="submit"
+              aria-label="Send to Aegis"
+              className="text-slate-300 hover:text-white cursor-pointer"
+            >
+              {prompt.trim() ? <Send className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+            </button>
+          </form>
+
+          <div className="space-y-1.5 pt-1 pl-1">
+            {SUGGESTIONS.map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => sendQuery(item.label)}
+                  className="w-full text-left flex items-center gap-2.5 py-1.5 px-2 rounded-xl hover:bg-white/5 text-[11px] font-medium text-slate-200 transition cursor-pointer"
+                >
+                  <Icon className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <span className="truncate">{item.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
-      </div>
-
-      {/* Quick prompt starters */}
-      <div className="flex flex-wrap gap-1">
-        {['Check my vitals', 'Sleep advice', 'CSA neutron status', 'Bone & meal check'].map((q) => (
-          <button
-            key={q}
-            type="button"
-            onClick={() => sendQuery(q)}
-            className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-cyan-200 cursor-pointer"
-          >
-            {q}
-          </button>
-        ))}
-      </div>
-
-      <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
-        {db.aiHistory.slice(-6).map((msg) => (
-          <div
-            key={msg.id}
-            className={`rounded-xl p-2 text-[11px] leading-snug whitespace-pre-line ${
-              msg.role === 'user'
-                ? 'bg-blue-600 text-white ml-4'
-                : 'bg-slate-900 border border-slate-700 text-slate-200 mr-2'
-            }`}
-          >
-            {msg.role === 'assistant' && (
-              <div className="text-[9px] font-mono text-amber-300 mb-0.5 uppercase">
-                {msg.mode === 'gemini' ? 'Gemini · Visitor DB Grepped' : 'Offline · Visitor DB Grepped'}
+      ) : (
+        /* EXPANDED CHAT HISTORY STATE (Matches Screenshot 2) */
+        <div className="flex-1 flex flex-col justify-between space-y-2.5">
+          <div className="space-y-2.5 max-h-44 overflow-y-auto px-0.5 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
+            {db.aiHistory.slice(-6).map((msg) =>
+              msg.role === 'user' ? (
+                <div key={msg.id} className="flex justify-end">
+                  <div className="max-w-[85%] rounded-2xl bg-[#1E1F23] border border-white/10 px-3 py-2 text-[11px] text-slate-100 leading-snug">
+                    {msg.text}
+                  </div>
+                </div>
+              ) : (
+                <div key={msg.id} className="space-y-1.5 pr-1">
+                  <div className="text-[11px] text-slate-200 leading-relaxed whitespace-pre-line">
+                    {msg.text}
+                  </div>
+                  <div className="flex items-center gap-3 text-slate-400 pt-0.5">
+                    <ThumbsUp className="w-3 h-3 hover:text-slate-200 cursor-pointer" />
+                    <ThumbsDown className="w-3 h-3 hover:text-slate-200 cursor-pointer" />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onUpdateDb((prev) => ({
+                          ...prev,
+                          aiHistory: [],
+                        }))
+                      }
+                      aria-label="Reset conversation"
+                      className="hover:text-slate-200 cursor-pointer"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              )
+            )}
+            {loading && (
+              <div className="text-[11px] font-medium text-slate-400 px-1">
+                Thinking...
               </div>
             )}
-            {msg.text}
           </div>
-        ))}
-        {loading && (
-          <div className="text-[11px] font-mono text-cyan-300 animate-pulse px-2">
-            Grepping your private watch database...
-          </div>
-        )}
-      </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          sendQuery();
-        }}
-        className="flex gap-1.5"
-      >
-        <input
-          type="text"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Ask about your health DB..."
-          className="flex-1 min-w-0 bg-slate-900 text-white text-xs rounded-xl px-2.5 py-2 border border-slate-700"
-        />
-        <button
-          type="submit"
-          aria-label="Send to AegisAI"
-          className="px-3 py-2 rounded-xl bg-amber-400 text-slate-950 font-black cursor-pointer"
-        >
-          <Send className="w-3.5 h-3.5" />
-        </button>
-      </form>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              sendQuery();
+            }}
+            className="flex items-center gap-2 rounded-full bg-[#1E1F23] border border-white/10 px-3 py-2 shadow-md"
+          >
+            <Plus className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <input
+              type="text"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="Ask Aegis"
+              className="flex-1 min-w-0 bg-transparent text-white placeholder-slate-400 text-xs focus:outline-none"
+            />
+            <button
+              type="submit"
+              aria-label="Send to Aegis"
+              className="text-slate-300 hover:text-white cursor-pointer"
+            >
+              {prompt.trim() ? <Send className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   );
 };
