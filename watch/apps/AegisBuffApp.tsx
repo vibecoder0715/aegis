@@ -25,6 +25,8 @@ import { playBuffVictory, playTapClick } from '../watchAudio';
 interface AegisBuffProps {
   db: VisitorWatchDatabase;
   onUpdateDb: (updater: (prev: VisitorWatchDatabase) => VisitorWatchDatabase) => void;
+  tasksOpen?: boolean;
+  onSetTasksOpen?: (open: boolean) => void;
 }
 
 /**
@@ -250,8 +252,18 @@ const Cute3DPlanetCanvas: React.FC<{
   );
 };
 
-export const AegisBuffAppView: React.FC<AegisBuffProps> = ({ db, onUpdateDb }) => {
-  const [showTasksDrawer, setShowTasksDrawer] = useState(false);
+export const AegisBuffAppView: React.FC<AegisBuffProps> = ({
+  db,
+  onUpdateDb,
+  tasksOpen,
+  onSetTasksOpen,
+}) => {
+  const [internalTasksOpen, setInternalTasksOpen] = useState(false);
+  const showTasksDrawer = tasksOpen ?? internalTasksOpen;
+  const setShowTasksDrawer = (val: boolean) => {
+    setInternalTasksOpen(val);
+    onSetTasksOpen?.(val);
+  };
   const [shopTab, setShopTab] = useState<'decor' | 'planets'>('decor');
   const [toast, setToast] = useState<string | null>(null);
   const [draggingInstanceId, setDraggingInstanceId] = useState<string | null>(null);
@@ -331,7 +343,7 @@ export const AegisBuffAppView: React.FC<AegisBuffProps> = ({ db, onUpdateDb }) =
 
   return (
     <div className="space-y-2 text-white relative select-none">
-      {/* MAIN 3D PLANET VIEWPORT WITH SIDE BUTTON FOR DAILY TASKS */}
+      {/* MAIN 3D PLANET VIEWPORT */}
       <div
         ref={stageRef}
         onPointerMove={handlePointerMoveOnStage}
@@ -351,36 +363,10 @@ export const AegisBuffAppView: React.FC<AegisBuffProps> = ({ db, onUpdateDb }) =
         {/* 3D Realistic Cute Planet Canvas */}
         <Cute3DPlanetCanvas skin={activeSkin} rotationOffset={0} />
 
-        {/* Top-left compact level & points HUD */}
-        <div className="absolute top-2 left-2 z-10 px-2 py-1 rounded-xl bg-slate-950/80 border border-slate-700/80 flex items-center gap-1.5">
-          <Sparkles className="w-3 h-3 text-amber-300" />
-          <span className="text-[10px] font-extrabold text-white">Lv.{lvl.level}</span>
-          <span className="font-mono text-[10px] font-black text-amber-300">
-            {db.aegisPoints} pts
-          </span>
-        </div>
-
-        {/* SIDE BUTTON FOR DAILY TASKS (Tasks hidden until clicked!) */}
-        <button
-          type="button"
-          onClick={() => {
-            playTapClick(db.settings.muted);
-            setShowTasksDrawer(true);
-          }}
-          aria-label="Open Daily Tasks"
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-20 px-2 py-2.5 rounded-2xl bg-gradient-to-b from-amber-400 to-orange-500 text-slate-950 font-black text-[10px] shadow-lg flex flex-col items-center gap-1 cursor-pointer hover:scale-105 transition"
-        >
-          <ClipboardList className="w-4 h-4" />
-          <span>Tasks</span>
-          <span className="px-1.5 py-0.5 rounded-full bg-slate-950 text-amber-300 font-mono text-[9px]">
-            {completedCount}/14
-          </span>
-        </button>
-
         {/* Empty planet helper caption when 0 items are placed */}
         {db.placedPlanetItems.length === 0 && (
           <div className="absolute bottom-2 left-2.5 z-10 px-2 py-0.5 rounded-lg bg-slate-950/75 text-[9px] font-bold text-cyan-200 pointer-events-none">
-            Drag or tap shop items onto your 3D planet!
+            Drag or tap 3D shop items onto your planet!
           </div>
         )}
 
@@ -511,14 +497,17 @@ export const AegisBuffAppView: React.FC<AegisBuffProps> = ({ db, onUpdateDb }) =
         </div>
       )}
 
-      {/* HIDDEN DAILY TASKS OVERLAY DRAWER (ONLY SHOWN WHEN SIDE BUTTON IS CLICKED) */}
+      {/* DAILY TASKS & PLAYER STATS PANEL (OPENED FROM TOP BAR TASKS ICON) */}
       {showTasksDrawer && (
         <div className="fixed inset-0 z-50 bg-slate-950/95 p-3 flex flex-col text-white">
           <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-            <div>
-              <div className="text-xs font-black text-amber-300">Daily Tasks</div>
-              <div className="text-[10px] font-bold text-slate-400">
-                Tap a task to earn planet points
+            <div className="flex items-center gap-2">
+              <ClipboardList className="w-4 h-4 text-amber-300" />
+              <div>
+                <div className="text-xs font-black text-amber-300">Daily Tasks</div>
+                <div className="text-[10px] font-bold text-slate-400">
+                  {completedCount}/{db.dailyTasks.length} completed
+                </div>
               </div>
             </div>
             <button
@@ -529,6 +518,30 @@ export const AegisBuffAppView: React.FC<AegisBuffProps> = ({ db, onUpdateDb }) =
             >
               <X className="w-3.5 h-3.5" />
             </button>
+          </div>
+
+          {/* Level, XP, and Points Status Panel */}
+          <div className="my-2 rounded-xl bg-slate-900 border border-amber-500/30 p-2.5 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <span className="text-xs font-black text-white">Lv.{lvl.level}</span>
+                <span className="text-[10px] font-bold text-cyan-300">{lvl.title}</span>
+              </div>
+              <span className="px-2 py-0.5 rounded-full bg-amber-400/20 border border-amber-400/40 font-mono text-[10px] font-black text-amber-300">
+                {db.aegisPoints} pts
+              </span>
+            </div>
+            <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+              <div
+                style={{ width: `${lvl.progressPct}%` }}
+                className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500"
+              />
+            </div>
+            <div className="flex justify-between font-mono text-[9px] text-slate-400">
+              <span>{db.xp} XP</span>
+              <span>Next Lv: {lvl.nextLevelXp} XP</span>
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto space-y-1.5 py-2 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">

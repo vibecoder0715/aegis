@@ -235,7 +235,7 @@ export default function App() {
         )}
       </main>
 
-      <OfflineIndicator simulatedOffline={false} />
+      <OfflineIndicator simulatedOffline={watchDb.settings.offlineSimulated} />
 
       {/* Mobile Compact Bottom Navigation Bar (<=15% viewport height) */}
       <nav

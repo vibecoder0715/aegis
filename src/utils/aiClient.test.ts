@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { queryGlmAi, getBigModelApiKey } from './glmClient.ts';
+import { queryAi, getAiApiKey } from './aiClient.ts';
 import { buildInitialCrew, DEFAULT_SENSOR_INPUTS } from './metricsEngine.ts';
 
 const FIFTY_TEST_CASES: Array<{ id: number; mode: 'watch' | 'board'; query: string }> = [
@@ -56,12 +56,12 @@ const FIFTY_TEST_CASES: Array<{ id: number; mode: 'watch' | 'board'; query: stri
   { id: 50, mode: 'board', query: 'Give an encouraging 2-sentence message for all 10 crewmates.' },
 ];
 
-test('GLM AI environment key is configured', () => {
-  const key = getBigModelApiKey();
-  assert.ok(key.length > 10, 'BIGMODEL_API_KEY must be loaded from .env');
+test('AI environment key is configured', () => {
+  const key = getAiApiKey();
+  assert.ok(key.length > 10, 'AI_API_KEY must be loaded from .env');
 });
 
-test('GLM AI passes all 50 Watch & Board test cases without failure', async () => {
+test('AI client passes all 50 Watch & Board test cases without failure', async () => {
   const crew = buildInitialCrew();
   const compactCrew = crew.map((c) => ({
     name: c.name,
@@ -75,14 +75,14 @@ test('GLM AI passes all 50 Watch & Board test cases without failure', async () =
     co2: c.vitals.cabinCo2,
   }));
 
-  let liveBigModelHits = 0;
+  let liveAiHits = 0;
 
-  // Run all 50 test cases in controlled batches of 5 to verify real GLM API + queue stability
+  // Run all 50 test cases in controlled batches of 5 to verify real AI API + queue stability
   for (let i = 0; i < FIFTY_TEST_CASES.length; i += 5) {
     const batch = FIFTY_TEST_CASES.slice(i, i + 5);
     const results = await Promise.all(
       batch.map((tc) =>
-        queryGlmAi({
+        queryAi({
           systemPrompt:
             'You are AegisAI. Reply in simple words (CEFR B2 max), under 45 words, grounded in the provided telemetry.',
           userPrompt: `MODE: ${tc.mode}\nWATCH: ${JSON.stringify(
@@ -101,12 +101,12 @@ test('GLM AI passes all 50 Watch & Board test cases without failure', async () =
         typeof res.reply === 'string' && res.reply.trim().length >= 8,
         `Test case #${tc.id} returned empty or too short reply: "${res.reply}"`
       );
-      if (res.provider === 'bigmodel-glm') {
-        liveBigModelHits += 1;
+      if (res.provider === 'aegis-ai') {
+        liveAiHits += 1;
       }
     });
   }
 
-  console.log(`All 50 test cases passed! Live BigModel GLM responses: ${liveBigModelHits}/50`);
-  assert.ok(liveBigModelHits >= 10, `Expected real live BigModel GLM responses, got ${liveBigModelHits}`);
+  console.log(`All 50 test cases passed! Live AI responses: ${liveAiHits}/50`);
+  assert.ok(liveAiHits >= 10, `Expected real live AI responses, got ${liveAiHits}`);
 });

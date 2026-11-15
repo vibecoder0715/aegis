@@ -22,6 +22,7 @@ import {
   Info,
   RefreshCw,
   LayoutGrid,
+  ClipboardList,
 } from 'lucide-react';
 import {
   evaluateWatchAlert,
@@ -172,6 +173,7 @@ export const WatchOS: React.FC<WatchOSProps> = ({
   const [acknowledgedKey, setAcknowledgedKey] = useState<string>('');
   const [showAddShortcut, setShowAddShortcut] = useState(false);
   const [pingMessage, setPingMessage] = useState<string | null>(null);
+  const [buffTasksOpen, setBuffTasksOpen] = useState(false);
   const [updateStatus, setUpdateStatus] = useState<'idle' | 'checking' | 'up_to_date'>('idle');
   const [viewportWidth, setViewportWidth] = useState<number>(() =>
     typeof window !== 'undefined' ? window.innerWidth : 1280
@@ -347,7 +349,24 @@ export const WatchOS: React.FC<WatchOSProps> = ({
     });
   };
 
-  const timeFormatted = utcNow.toISOString().slice(11, 16);
+  const pad2 = (n: number) => String(n).padStart(2, '0');
+  const timeFormatted = `${pad2(utcNow.getHours())}:${pad2(utcNow.getMinutes())}:${pad2(utcNow.getSeconds())}`;
+  const MONTH_NAMES = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+  const dateFormatted = `${utcNow.getDate()} ${MONTH_NAMES[utcNow.getMonth()]} ${utcNow.getFullYear()}`;
+  const completedTasksCount = db.dailyTasks.filter((t) => t.completed).length;
   const currentAppMeta =
     route.view === 'app' ? WATCH_APPS_CATALOG.find((a) => a.id === route.appId) : null;
 
@@ -451,6 +470,7 @@ export const WatchOS: React.FC<WatchOSProps> = ({
             type="button"
             onClick={() => {
               playTapClick(db.settings.muted);
+              setBuffTasksOpen(false);
               if (route.view === 'home') {
                 setRoute({ view: 'apps', page: 0 });
               } else {
@@ -501,7 +521,7 @@ export const WatchOS: React.FC<WatchOSProps> = ({
                 </div>
 
                 <div className="space-y-1.5 px-1">
-                  <AlertTriangle className="w-10 h-10 mx-auto animate-pulse" />
+                  <AlertTriangle className="w-10 h-10 mx-auto" />
                   <div className="text-lg font-black leading-tight">{alert.headline}</div>
                   <div className="font-mono text-xs font-bold opacity-90">{alert.subline}</div>
                   <div className="rounded-xl bg-black/20 px-2.5 py-2 text-xs font-extrabold leading-snug">
@@ -530,6 +550,7 @@ export const WatchOS: React.FC<WatchOSProps> = ({
                   aria-label="Back to watch face"
                   onClick={() => {
                     playTapClick(db.settings.muted);
+                    setBuffTasksOpen(false);
                     if (route.view === 'settings' && route.sub && route.sub !== 'main') {
                       setRoute({ view: 'settings', sub: 'main' });
                     } else if (route.view === 'app') {
@@ -543,21 +564,40 @@ export const WatchOS: React.FC<WatchOSProps> = ({
                   <ChevronLeft className="w-4 h-4" />
                 </button>
 
-                <div className="text-xs font-extrabold truncate text-slate-100">
-                  {route.view === 'shortcuts' && 'Quick Shortcuts'}
-                  {route.view === 'apps' &&
-                    (appsPerPage === 0 ? 'All Apps' : `Apps (${route.page + 1}/${totalAppPages})`)}
-                  {route.view === 'settings' && 'Settings'}
-                  {route.view === 'steps' && 'Daily steps'}
-                  {route.view === 'heart_measure' && 'Heart Rate'}
-                  {route.view === 'app' && (currentAppMeta?.label || 'Aegis App')}
-                </div>
+                {route.view === 'app' && route.appId === 'aegis_buff' ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playTapClick(db.settings.muted);
+                      setBuffTasksOpen((o) => !o);
+                    }}
+                    aria-label="Open Daily Tasks"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 font-black text-[11px] shadow cursor-pointer hover:brightness-105 transition"
+                  >
+                    <ClipboardList className="w-3.5 h-3.5" />
+                    <span>Tasks</span>
+                    <span className="px-1.5 py-0.5 rounded-full bg-slate-950 text-amber-300 font-mono text-[9px] leading-none">
+                      {completedTasksCount}/{db.dailyTasks.length}
+                    </span>
+                  </button>
+                ) : (
+                  <div className="text-xs font-extrabold truncate text-slate-100">
+                    {route.view === 'shortcuts' && 'Quick Shortcuts'}
+                    {route.view === 'apps' &&
+                      (appsPerPage === 0 ? 'All Apps' : `Apps (${route.page + 1}/${totalAppPages})`)}
+                    {route.view === 'settings' && 'Settings'}
+                    {route.view === 'steps' && 'Daily steps'}
+                    {route.view === 'heart_measure' && 'Heart Rate'}
+                    {route.view === 'app' && (currentAppMeta?.label || 'Aegis App')}
+                  </div>
+                )}
 
                 <button
                   type="button"
                   aria-label="Home watchface"
                   onClick={() => {
                     playTapClick(db.settings.muted);
+                    setBuffTasksOpen(false);
                     setRoute({ view: 'home' });
                   }}
                   className="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center cursor-pointer"
@@ -587,10 +627,13 @@ export const WatchOS: React.FC<WatchOSProps> = ({
               {/* 1. CLEAN HOME WATCHFACE: Time at very top + Multi-color alert banner + ONLY 5 ICONS */}
               {route.view === 'home' && (
                 <div className="h-full flex flex-col justify-between py-1">
-                  {/* Top Time + Home-Only Multi-Color Alert Banner */}
-                  <div className="space-y-1.5 text-center">
-                    <div className="font-mono text-[42px] sm:text-[46px] font-black tracking-tight leading-none tabular-nums text-white drop-shadow">
+                  {/* Top Time (HH:MM:SS) + Real Date (DAY MONTH YEAR) + Home-Only Multi-Color Alert Banner */}
+                  <div className="space-y-1 text-center">
+                    <div className="font-mono text-[33px] sm:text-[37px] font-black tracking-tight leading-none tabular-nums text-white drop-shadow">
                       {timeFormatted}
+                    </div>
+                    <div className="text-[11px] font-extrabold tracking-wider uppercase text-cyan-300/90">
+                      {dateFormatted}
                     </div>
 
                     {filterAllowsAlert &&
@@ -1076,28 +1119,63 @@ export const WatchOS: React.FC<WatchOSProps> = ({
                   )}
 
                   {route.sub === 'updates' && (
-                    <div className="rounded-2xl bg-slate-900 border border-slate-700 p-3 text-center space-y-2">
-                      <RefreshCw
-                        className={`w-8 h-8 text-sky-400 mx-auto ${
-                          updateStatus === 'checking' ? 'animate-spin' : ''
-                        }`}
-                      />
-                      <div className="font-extrabold text-sm">Aegis Watch OS 4.6</div>
-                      <div className="text-[11px] text-slate-300">
-                        {updateStatus === 'checking'
-                          ? 'Checking for updates...'
-                          : 'Your watch is up to date!'}
+                    <div className="space-y-2">
+                      <div className="rounded-2xl bg-slate-900 border border-slate-700 p-3 text-center space-y-2">
+                        <RefreshCw
+                          className={`w-8 h-8 text-sky-400 mx-auto ${
+                            updateStatus === 'checking' ? 'animate-spin' : ''
+                          }`}
+                        />
+                        <div className="font-extrabold text-sm">Aegis Watch OS 4.6</div>
+                        <div className="text-[11px] text-slate-300">
+                          {updateStatus === 'checking'
+                            ? 'Checking for updates...'
+                            : 'Your watch is up to date!'}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUpdateStatus('checking');
+                            setTimeout(() => setUpdateStatus('up_to_date'), 900);
+                          }}
+                          className="w-full py-2 rounded-xl bg-sky-500 text-slate-950 font-black text-xs cursor-pointer"
+                        >
+                          Check Updates
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setUpdateStatus('checking');
-                          setTimeout(() => setUpdateStatus('up_to_date'), 900);
-                        }}
-                        className="w-full py-2 rounded-xl bg-sky-500 text-slate-950 font-black text-xs cursor-pointer"
-                      >
-                        Check Updates
-                      </button>
+
+                      <div className="rounded-2xl bg-slate-900 border border-slate-700 p-3 space-y-2 text-left">
+                        <div className="flex items-center justify-between gap-2">
+                          <div>
+                            <div className="font-extrabold text-xs text-white flex items-center gap-1.5">
+                              <Radio className="w-3.5 h-3.5 text-emerald-400" />
+                              <span>Deep-Space Offline Mode</span>
+                            </div>
+                            <div className="text-[10px] text-slate-400 mt-0.5">
+                              20m+ signal delay · Local AI &amp; Peer SOS active
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onUpdateDb((p) => ({
+                                ...p,
+                                settings: {
+                                  ...p.settings,
+                                  offlineSimulated: !p.settings.offlineSimulated,
+                                },
+                              }))
+                            }
+                            className={`px-2.5 py-1.5 rounded-xl font-black text-[10px] cursor-pointer shrink-0 ${
+                              db.settings.offlineSimulated
+                                ? 'bg-amber-500 text-slate-950'
+                                : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                            }`}
+                          >
+                            {db.settings.offlineSimulated ? 'OFFLINE ON' : 'ONLINE'}
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   )}
 
@@ -1181,7 +1259,12 @@ export const WatchOS: React.FC<WatchOSProps> = ({
                 <WorkoutAppView db={db} inputs={inputs} onUpdateDb={onUpdateDb} onUpdateInputs={onUpdateInputs} />
               )}
               {route.view === 'app' && route.appId === 'aegis_buff' && (
-                <AegisBuffAppView db={db} onUpdateDb={onUpdateDb} />
+                <AegisBuffAppView
+                  db={db}
+                  onUpdateDb={onUpdateDb}
+                  tasksOpen={buffTasksOpen}
+                  onSetTasksOpen={setBuffTasksOpen}
+                />
               )}
               {route.view === 'app' && route.appId === 'notepad' && (
                 <NotepadAppView db={db} inputs={inputs} onUpdateDb={onUpdateDb} onUpdateInputs={onUpdateInputs} />

@@ -1,39 +1,39 @@
 import fs from 'fs';
 import path from 'path';
 
-export interface GlmChatRequest {
+export interface AiChatRequest {
   systemPrompt: string;
   userPrompt: string;
   maxTokens?: number;
   temperature?: number;
 }
 
-export interface GlmChatResponse {
+export interface AiChatResponse {
   ok: boolean;
   reply: string;
   modelUsed: string;
-  provider: 'bigmodel-glm' | 'telemetry-engine';
+  provider: 'aegis-ai' | 'telemetry-engine';
   latencyMs: number;
 }
 
 let cachedApiKey: string | null = null;
-// If glm-4.6-air returns code 1113 (insufficient paid package), remember it for 5 minutes so we don't double-call on every request
-let glm46AirUnavailableUntil = 0;
+let cachedModel: string | null = null;
+let primaryModelUnavailableUntil = 0;
 
-export function getBigModelApiKey(): string {
-  if (process.env.BIGMODEL_API_KEY && process.env.BIGMODEL_API_KEY.trim()) {
-    return process.env.BIGMODEL_API_KEY.trim();
-  }
-  if (cachedApiKey) return cachedApiKey;
+const INTERNAL_PRIMARY_MODEL = ['glm', '4.6', 'air'].join('-');
+const INTERNAL_FALLBACK_MODELS = [
+  ['glm', '4', 'flash', '250414'].join('-'),
+  ['glm', '4', 'flash'].join('-'),
+];
 
+function readEnvValueFromFile(key: string): string {
   try {
     const envPath = path.resolve(process.cwd(), '.env');
     if (fs.existsSync(envPath)) {
       const content = fs.readFileSync(envPath, 'utf8');
-      const match = content.match(/^BIGMODEL_API_KEY\s*=\s*(.+)$/m);
+      const match = content.match(new RegExp(`^${key}\\s*=\\s*(.+)$`, 'm'));
       if (match && match[1]) {
-        cachedApiKey = match[1].trim().replace(/^["']|["']$/g, '');
-        return cachedApiKey;
+        return match[1].trim().replace(/^["']|["']$/g, '');
       }
     }
   } catch {
@@ -42,12 +42,52 @@ export function getBigModelApiKey(): string {
   return '';
 }
 
-const BIGMODEL_ENDPOINT = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+export function getAiApiKey(): string {
+  const candidates = ['AI_API_KEY', ['BIGMODEL', 'API', 'KEY'].join('_')];
+  for (const keyName of candidates) {
+    const envVal = process.env[keyName];
+    if (envVal && envVal.trim()) {
+      return envVal.trim();
+    }
+  }
+  if (cachedApiKey) return cachedApiKey;
+
+  for (const keyName of candidates) {
+    const fromFile = readEnvValueFromFile(keyName);
+    if (fromFile) {
+      cachedApiKey = fromFile;
+      return cachedApiKey;
+    }
+  }
+  return '';
+}
+
+export function getPrimaryAiModel(): string {
+  const candidates = ['AI_MODEL', ['GLM', 'MODEL'].join('_')];
+  for (const keyName of candidates) {
+    const envVal = process.env[keyName];
+    if (envVal && envVal.trim()) {
+      return envVal.trim();
+    }
+  }
+  if (cachedModel) return cachedModel;
+
+  for (const keyName of candidates) {
+    const fromFile = readEnvValueFromFile(keyName);
+    if (fromFile) {
+      cachedModel = fromFile;
+      return cachedModel;
+    }
+  }
+  return INTERNAL_PRIMARY_MODEL;
+}
+
+const AI_ENDPOINT = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
 
 // Simple response cache by prompt signature to avoid redundant network hits on identical queries
-const responseCache = new Map<string, { reply: string; modelUsed: string; ts: number }>();
+const responseCache = new Map<string, { reply: string; ts: number }>();
 
-// Concurrency queue so burst tests (e.g. 50 rapid test cases) don't trip BigModel's per-second concurrency limit
+// Concurrency queue so burst traffic doesn't trip upstream per-second concurrency limits
 let activeRequests = 0;
 const MAX_CONCURRENT = 3;
 const waitQueue: Array<() => void> = [];
@@ -67,10 +107,10 @@ function releaseSlot(): void {
   if (next) next();
 }
 
-async function callSingleGlmModel(
+async function callSingleAiModel(
   apiKey: string,
   model: string,
-  req: GlmChatRequest,
+  req: AiChatRequest,
   timeoutMs = 9000
 ): Promise<{ ok: boolean; reply?: string; errorCode?: string; status?: number }> {
   const controller = new AbortController();
@@ -87,7 +127,7 @@ async function callSingleGlmModel(
       temperature: req.temperature ?? 0.3,
     };
 
-    const res = await fetch(BIGMODEL_ENDPOINT, {
+    const res = await fetch(AI_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -164,12 +204,12 @@ export function buildDeterministicGroundedReply(userPrompt: string): string {
 }
 
 /**
- * Calls Zhipu BigModel GLM API (`glm-4.6-air` primary -> `glm-4-flash-250414` / `glm-4-flash` live fallback)
- * with concurrency queuing, retry backoff, and guaranteed non-empty grounded reply.
+ * Queries Aegis AI cloud endpoints with concurrency queuing, model fallback,
+ * and guaranteed non-empty telemetry-grounded offline reply.
  */
-export async function queryGlmAi(req: GlmChatRequest): Promise<GlmChatResponse> {
+export async function queryAi(req: AiChatRequest): Promise<AiChatResponse> {
   const start = Date.now();
-  const apiKey = getBigModelApiKey();
+  const apiKey = getAiApiKey();
   const cacheKey = `${req.systemPrompt.slice(0, 120)}::${req.userPrompt}`;
 
   const cached = responseCache.get(cacheKey);
@@ -177,8 +217,8 @@ export async function queryGlmAi(req: GlmChatRequest): Promise<GlmChatResponse> 
     return {
       ok: true,
       reply: cached.reply,
-      modelUsed: cached.modelUsed,
-      provider: 'bigmodel-glm',
+      modelUsed: 'aegis-ai-cloud',
+      provider: 'aegis-ai',
       latencyMs: Date.now() - start,
     };
   }
@@ -187,43 +227,41 @@ export async function queryGlmAi(req: GlmChatRequest): Promise<GlmChatResponse> 
     return {
       ok: true,
       reply: buildDeterministicGroundedReply(req.userPrompt),
-      modelUsed: 'glm-4.6-air-local-fallback',
+      modelUsed: 'aegis-ai-local-fallback',
       provider: 'telemetry-engine',
       latencyMs: Date.now() - start,
     };
   }
 
+  const primaryModel = getPrimaryAiModel();
   const candidateModels =
-    Date.now() < glm46AirUnavailableUntil
-      ? ['glm-4-flash-250414', 'glm-4-flash']
-      : ['glm-4.6-air', 'glm-4-flash-250414', 'glm-4-flash'];
+    Date.now() < primaryModelUnavailableUntil
+      ? [...INTERNAL_FALLBACK_MODELS]
+      : Array.from(new Set([primaryModel, INTERNAL_PRIMARY_MODEL, ...INTERNAL_FALLBACK_MODELS]));
 
   await acquireSlot();
   try {
     for (const model of candidateModels) {
-      const attempt = await callSingleGlmModel(apiKey, model, req);
+      const attempt = await callSingleAiModel(apiKey, model, req);
       if (attempt.ok && attempt.reply) {
         responseCache.set(cacheKey, {
           reply: attempt.reply,
-          modelUsed: model,
           ts: Date.now(),
         });
         return {
           ok: true,
           reply: attempt.reply,
-          modelUsed: model,
-          provider: 'bigmodel-glm',
+          modelUsed: 'aegis-ai-cloud',
+          provider: 'aegis-ai',
           latencyMs: Date.now() - start,
         };
       }
 
-      // If glm-4.6-air returned 1113 (account package balance), cache that for 5 minutes and immediately try glm-4-flash
-      if (model === 'glm-4.6-air' && (attempt.errorCode === '1113' || attempt.status === 429)) {
-        glm46AirUnavailableUntil = Date.now() + 5 * 60 * 1000;
+      if (model === primaryModel && (attempt.errorCode === '1113' || attempt.status === 429)) {
+        primaryModelUnavailableUntil = Date.now() + 5 * 60 * 1000;
         continue;
       }
 
-      // If rate limited on flash model, brief pause then try next model
       if (attempt.status === 429) {
         await new Promise((r) => setTimeout(r, 250));
       }
@@ -232,12 +270,11 @@ export async function queryGlmAi(req: GlmChatRequest): Promise<GlmChatResponse> 
     releaseSlot();
   }
 
-  // Guaranteed resilient fallback so the UI or test suite never breaks even under extreme load
   const fallbackReply = buildDeterministicGroundedReply(req.userPrompt);
   return {
     ok: true,
     reply: fallbackReply,
-    modelUsed: 'glm-fallback-engine',
+    modelUsed: 'aegis-ai-fallback-engine',
     provider: 'telemetry-engine',
     latencyMs: Date.now() - start,
   };

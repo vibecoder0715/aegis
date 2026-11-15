@@ -438,56 +438,177 @@ export const PlanetDecoratorSvg: React.FC<{ itemId: string; size?: number }> = (
   itemId,
   size = 28,
 }) => {
+  const uid = React.useId().replace(/:/g, '');
   switch (itemId) {
     case 'solar_tree':
       return (
-        <svg width={size} height={size} viewBox="0 0 36 36" fill="none">
-          <rect x="16" y="21" width="4" height="11" rx="1.5" fill="#92400E" />
-          <circle cx="18" cy="15" r="9" fill="#22C55E" stroke="#14532D" strokeWidth="2" />
-          <circle cx="15" cy="13" r="2" fill="#FEF08A" />
+        <svg width={size} height={size} viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <defs>
+            <radialGradient id={`${uid}-leafTop`} cx="35%" cy="30%" r="70%">
+              <stop offset="0%" stopColor="#86EFAC" />
+              <stop offset="55%" stopColor="#22C55E" />
+              <stop offset="100%" stopColor="#14532D" />
+            </radialGradient>
+            <radialGradient id={`${uid}-leafBase`} cx="35%" cy="30%" r="70%">
+              <stop offset="0%" stopColor="#4ADE80" />
+              <stop offset="60%" stopColor="#16A34A" />
+              <stop offset="100%" stopColor="#052E16" />
+            </radialGradient>
+            <linearGradient id={`${uid}-trunk`} x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#D97706" />
+              <stop offset="50%" stopColor="#92400E" />
+              <stop offset="100%" stopColor="#451A03" />
+            </linearGradient>
+          </defs>
+          <ellipse cx="20" cy="35" rx="9" ry="2.5" fill="#000000" fillOpacity="0.4" />
+          <path d="M17.5 23H22.5L23.5 34.5C21.2 35.4 18.8 35.4 16.5 34.5L17.5 23Z" fill={`url(#${uid}-trunk)`} />
+          <ellipse cx="20" cy="21" rx="11.5" ry="7.5" fill={`url(#${uid}-leafBase)`} />
+          <ellipse cx="20" cy="14.5" rx="9.5" ry="7" fill={`url(#${uid}-leafTop)`} />
+          <ellipse cx="17" cy="11.5" rx="3.5" ry="2" fill="#DCFCE7" fillOpacity="0.55" />
+          <circle cx="14.5" cy="18" r="1.8" fill="#FDE047" />
+          <circle cx="24.5" cy="15.5" r="1.6" fill="#FACC15" />
         </svg>
       );
+
     case 'hydro_dome':
       return (
-        <svg width={size} height={size} viewBox="0 0 36 36" fill="none">
-          <path d="M6 28C6 18 11 11 18 11C25 11 30 18 30 28H6Z" fill="#38BDF8" stroke="#0284C7" strokeWidth="2" />
-          <rect x="4" y="27" width="28" height="4" rx="2" fill="#94A3B8" />
+        <svg width={size} height={size} viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <defs>
+            <radialGradient id={`${uid}-glass`} cx="35%" cy="28%" r="72%">
+              <stop offset="0%" stopColor="#E0F2FE" />
+              <stop offset="38%" stopColor="#38BDF8" />
+              <stop offset="80%" stopColor="#0284C7" />
+              <stop offset="100%" stopColor="#0C4A6E" />
+            </radialGradient>
+            <linearGradient id={`${uid}-rim`} x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#F1F5F9" />
+              <stop offset="50%" stopColor="#94A3B8" />
+              <stop offset="100%" stopColor="#334155" />
+            </linearGradient>
+          </defs>
+          <ellipse cx="20" cy="33" rx="14.5" ry="3.5" fill="#000000" fillOpacity="0.45" />
+          <path d="M7 27C7 16 12.5 9.5 20 9.5C27.5 9.5 33 16 33 27H7Z" fill={`url(#${uid}-glass)`} />
+          <path d="M11 23C14 19 26 19 29 23" stroke="#BAE6FD" strokeWidth="1.2" strokeOpacity="0.55" />
+          <path d="M13 15.5C15 12.5 18 11.5 20.5 11.5" stroke="#FFFFFF" strokeWidth="2.2" strokeLinecap="round" strokeOpacity="0.8" />
+          <ellipse cx="20" cy="28.5" rx="14.5" ry="4" fill={`url(#${uid}-rim)`} />
+          <ellipse cx="20" cy="27.5" rx="13.5" ry="2.6" fill="#0EA5E9" fillOpacity="0.45" />
         </svg>
       );
+
     case 'aurora_ring':
       return (
-        <svg width={size} height={size} viewBox="0 0 36 36" fill="none">
-          <ellipse cx="18" cy="18" rx="15" ry="6" transform="rotate(-18 18 18)" stroke="#A855F7" strokeWidth="3.5" />
-          <ellipse cx="18" cy="18" rx="11" ry="4" transform="rotate(-18 18 18)" stroke="#34D399" strokeWidth="2" />
+        <svg width={size} height={size} viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <defs>
+            <linearGradient id={`${uid}-ringA`} x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#34D399" />
+              <stop offset="50%" stopColor="#A855F7" />
+              <stop offset="100%" stopColor="#EC4899" />
+            </linearGradient>
+            <radialGradient id={`${uid}-core`} cx="35%" cy="35%" r="70%">
+              <stop offset="0%" stopColor="#FFFFFF" />
+              <stop offset="50%" stopColor="#67E8F9" />
+              <stop offset="100%" stopColor="#4338CA" />
+            </radialGradient>
+          </defs>
+          <ellipse cx="20" cy="20" rx="16" ry="6.8" transform="rotate(-22 20 20)" stroke={`url(#${uid}-ringA)`} strokeWidth="4.5" />
+          <circle cx="20" cy="20" r="5.5" fill={`url(#${uid}-core)`} />
+          <path d="M6.5 25.5C11 28 24 23 33.5 14.5" stroke="#F5D0FE" strokeWidth="1.6" strokeLinecap="round" strokeOpacity="0.85" />
         </svg>
       );
+
     case 'mini_rover':
       return (
-        <svg width={size} height={size} viewBox="0 0 36 36" fill="none">
-          <rect x="9" y="16" width="18" height="8" rx="2.5" fill="#FBBF24" stroke="#78350F" strokeWidth="2" />
-          <circle cx="13" cy="26" r="3.5" fill="#334155" />
-          <circle cx="23" cy="26" r="3.5" fill="#334155" />
-          <path d="M22 16V10L26 8" stroke="#E2E8F0" strokeWidth="2" strokeLinecap="round" />
+        <svg width={size} height={size} viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <defs>
+            <linearGradient id={`${uid}-body`} x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#FEF08A" />
+              <stop offset="50%" stopColor="#F59E0B" />
+              <stop offset="100%" stopColor="#92400E" />
+            </linearGradient>
+            <radialGradient id={`${uid}-wheel`} cx="35%" cy="35%" r="70%">
+              <stop offset="0%" stopColor="#64748B" />
+              <stop offset="70%" stopColor="#1E293B" />
+              <stop offset="100%" stopColor="#020617" />
+            </radialGradient>
+          </defs>
+          <ellipse cx="20" cy="34" rx="14" ry="2.8" fill="#000000" fillOpacity="0.45" />
+          {/* Mast & Camera Head */}
+          <path d="M25 18V10.5" stroke="#CBD5E1" strokeWidth="2.4" strokeLinecap="round" />
+          <rect x="21.5" y="7" width="8.5" height="5" rx="1.8" fill="#E2E8F0" stroke="#475569" strokeWidth="1.2" />
+          <circle cx="27.5" cy="9.5" r="1.4" fill="#38BDF8" />
+          {/* 3D Chassis */}
+          <path d="M9 19.5L13 15.5H28.5L31 20.5V26H9V19.5Z" fill={`url(#${uid}-body)`} />
+          <rect x="12" y="17.5" width="13" height="2.2" rx="1" fill="#FEF9C3" fillOpacity="0.7" />
+          {/* 3D Wheels */}
+          <circle cx="13" cy="28.5" r="4.5" fill={`url(#${uid}-wheel)`} />
+          <circle cx="13" cy="28.5" r="1.7" fill="#CBD5E1" />
+          <circle cx="27" cy="28.5" r="4.5" fill={`url(#${uid}-wheel)`} />
+          <circle cx="27" cy="28.5" r="1.7" fill="#CBD5E1" />
         </svg>
       );
+
     case 'beacon_tower':
       return (
-        <svg width={size} height={size} viewBox="0 0 36 36" fill="none">
-          <path d="M13 30L18 10L23 30H13Z" fill="#CBD5E1" stroke="#475569" strokeWidth="2" />
-          <circle cx="18" cy="9" r="3.5" fill="#F43F5E" />
+        <svg width={size} height={size} viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <defs>
+            <linearGradient id={`${uid}-metal`} x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#F8FAFC" />
+              <stop offset="50%" stopColor="#94A3B8" />
+              <stop offset="100%" stopColor="#334155" />
+            </linearGradient>
+            <radialGradient id={`${uid}-beacon`} cx="35%" cy="35%" r="70%">
+              <stop offset="0%" stopColor="#FFF1F2" />
+              <stop offset="40%" stopColor="#FB7185" />
+              <stop offset="100%" stopColor="#9F1239" />
+            </radialGradient>
+          </defs>
+          <ellipse cx="20" cy="35" rx="10" ry="2.6" fill="#000000" fillOpacity="0.45" />
+          <circle cx="20" cy="10" r="8.5" fill="#F43F5E" fillOpacity="0.22" />
+          <path d="M13.5 34L18 13.5H22L26.5 34H13.5Z" fill={`url(#${uid}-metal)`} />
+          <path d="M16 27H24M17 21H23" stroke="#1E293B" strokeWidth="1.4" strokeOpacity="0.5" />
+          <circle cx="20" cy="10" r="4.3" fill={`url(#${uid}-beacon)`} />
+          <circle cx="18.6" cy="8.6" r="1.2" fill="#FFFFFF" fillOpacity="0.85" />
         </svg>
       );
+
     case 'starlight_pond':
       return (
-        <svg width={size} height={size} viewBox="0 0 36 36" fill="none">
-          <ellipse cx="18" cy="22" rx="13" ry="7" fill="#0EA5E9" stroke="#7DD3FC" strokeWidth="2" />
-          <path d="M18 14L19.5 18L23.5 19.5L19.5 21L18 25L16.5 21L12.5 19.5L16.5 18Z" fill="#FEF08A" />
+        <svg width={size} height={size} viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <defs>
+            <radialGradient id={`${uid}-pond`} cx="40%" cy="40%" r="65%">
+              <stop offset="0%" stopColor="#67E8F9" />
+              <stop offset="55%" stopColor="#0284C7" />
+              <stop offset="100%" stopColor="#0F172A" />
+            </radialGradient>
+          </defs>
+          <ellipse cx="20" cy="24" rx="15" ry="8.5" fill="#334155" />
+          <ellipse cx="20" cy="23.5" rx="13.5" ry="7.2" fill={`url(#${uid}-pond)`} />
+          <ellipse cx="18" cy="24" rx="8.5" ry="3.8" stroke="#BAE6FD" strokeWidth="1.2" strokeOpacity="0.55" />
+          <path d="M20 12L21.7 17.5L27 19.2L21.7 21L20 26.5L18.3 21L13 19.2L18.3 17.5Z" fill="#FEF08A" />
         </svg>
       );
+
     default:
+      // 3D Crystal Spire
       return (
-        <svg width={size} height={size} viewBox="0 0 36 36" fill="none">
-          <path d="M18 6L26 18L18 30L10 18L18 6Z" fill="#F472B6" stroke="#9D174D" strokeWidth="2" />
+        <svg width={size} height={size} viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <defs>
+            <linearGradient id={`${uid}-crysL`} x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#FBCFE8" />
+              <stop offset="100%" stopColor="#EC4899" />
+            </linearGradient>
+            <linearGradient id={`${uid}-crysR`} x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#DB2777" />
+              <stop offset="100%" stopColor="#701A75" />
+            </linearGradient>
+          </defs>
+          <ellipse cx="20" cy="34.5" rx="11" ry="2.8" fill="#000000" fillOpacity="0.45" />
+          {/* Side Mini Crystal */}
+          <path d="M9 28L12.5 16L16.5 29L12.5 32L9 28Z" fill={`url(#${uid}-crysL)`} />
+          {/* Main 3D Faceted Crystal */}
+          <path d="M20 5.5L12.5 19.5L16.5 33.5L20 35V5.5Z" fill={`url(#${uid}-crysL)`} />
+          <path d="M20 5.5L27.5 19.5L23.5 33.5L20 35V5.5Z" fill={`url(#${uid}-crysR)`} />
+          <path d="M20 6.5L16 19L20 26" stroke="#FFFFFF" strokeWidth="1.3" strokeOpacity="0.7" />
         </svg>
       );
   }

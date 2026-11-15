@@ -438,6 +438,7 @@ export const AegisAiAppView: React.FC<MediaAiProps> = ({
 }) => {
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
+  const [feedback, setFeedback] = useState<Record<string, 'up' | 'down' | null>>({});
 
   const sendQuery = async (customText?: string) => {
     const q = (customText ?? prompt).trim();
@@ -457,26 +458,30 @@ export const AegisAiAppView: React.FC<MediaAiProps> = ({
 
     const grepped = grepVisitorWatchDb(db, inputs, q, situation);
     let replyText = '';
+    let usedOnline = false;
 
-    try {
-      const res = await fetch('/api/aegis-ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          visitorId: db.visitorId,
-          query: q,
-          watchDbSnapshot: grepped.snapshot,
-          matchedNasaCsaRefs: grepped.matchedNasaCsaRefs,
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data?.reply) {
-          replyText = data.reply;
+    if (!db.settings.offlineSimulated) {
+      try {
+        const res = await fetch('/api/aegis-ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            visitorId: db.visitorId,
+            query: q,
+            watchDbSnapshot: grepped.snapshot,
+            matchedNasaCsaRefs: grepped.matchedNasaCsaRefs,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.reply) {
+            replyText = data.reply;
+            usedOnline = true;
+          }
         }
+      } catch {
+        // Fallback to local responder
       }
-    } catch {
-      // Fallback to local responder
     }
 
     if (!replyText) {
@@ -492,7 +497,7 @@ export const AegisAiAppView: React.FC<MediaAiProps> = ({
           role: 'assistant',
           text: replyText,
           timestampUtc: new Date().toISOString(),
-          mode: 'gemini',
+          mode: usedOnline ? 'ai' : 'offline-db',
         },
       ],
     }));
@@ -574,8 +579,41 @@ export const AegisAiAppView: React.FC<MediaAiProps> = ({
                     {msg.text}
                   </div>
                   <div className="flex items-center gap-3 text-slate-400 pt-0.5">
-                    <ThumbsUp className="w-3 h-3 hover:text-slate-200 cursor-pointer" />
-                    <ThumbsDown className="w-3 h-3 hover:text-slate-200 cursor-pointer" />
+                    <button
+                      type="button"
+                      aria-label="Helpful response"
+                      onClick={() =>
+                        setFeedback((prev) => ({
+                          ...prev,
+                          [msg.id]: prev[msg.id] === 'up' ? null : 'up',
+                        }))
+                      }
+                      className={`cursor-pointer ${
+                        feedback[msg.id] === 'up' ? 'text-emerald-400' : 'hover:text-slate-200'
+                      }`}
+                    >
+                      <ThumbsUp className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Needs improvement"
+                      onClick={() =>
+                        setFeedback((prev) => ({
+                          ...prev,
+                          [msg.id]: prev[msg.id] === 'down' ? null : 'down',
+                        }))
+                      }
+                      className={`cursor-pointer ${
+                        feedback[msg.id] === 'down' ? 'text-rose-400' : 'hover:text-slate-200'
+                      }`}
+                    >
+                      <ThumbsDown className="w-3 h-3" />
+                    </button>
+                    {msg.mode === 'offline-db' && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                        Offline AI
+                      </span>
+                    )}
                     <button
                       type="button"
                       onClick={() =>

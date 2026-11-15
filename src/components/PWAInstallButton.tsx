@@ -74,20 +74,10 @@ export function useOnlineStatus() {
 
 export const CanvaIconSvg: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
   <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true">
-    <defs>
-      <linearGradient id="canvaGrad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-        <stop offset="0%" stopColor="#00C4CC" />
-        <stop offset="50%" stopColor="#5A32FA" />
-        <stop offset="100%" stopColor="#7D2AE8" />
-      </linearGradient>
-    </defs>
-    <circle cx="12" cy="12" r="11" fill="url(#canvaGrad)" />
-    <path
-      d="M15.6 14.5C14.8 15.8 13.4 16.5 11.9 16.5C9.4 16.5 7.6 14.6 7.6 12C7.6 9.4 9.5 7.5 12 7.5C13.6 7.5 14.9 8.3 15.5 9.5"
-      stroke="#FFFFFF"
-      strokeWidth="2.3"
-      strokeLinecap="round"
-    />
+    <rect x="3" y="4" width="18" height="12" rx="2.5" stroke="currentColor" strokeWidth="2.1" fill="currentColor" fillOpacity="0.16" />
+    <path d="M2 4H22" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+    <path d="M12 16V20M8.5 20H15.5" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" />
+    <path d="M7.5 12V10M12 12V8.5M16.5 12V7.5" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" />
   </svg>
 );
 

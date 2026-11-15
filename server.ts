@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -9,7 +10,7 @@ import {
   generateAllMetrics,
   LiveSensorInputs,
 } from './src/utils/metricsEngine.ts';
-import { queryGlmAi } from './src/utils/glmClient.ts';
+import { queryAi } from './src/utils/aiClient.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,7 +43,7 @@ async function startServer() {
     });
   });
 
-  // POST /api/aegis-ai — Watch & Board GLM AI endpoint
+  // POST /api/aegis-ai — Watch & Board AI endpoint
   app.post('/api/aegis-ai', async (req, res) => {
     const visitorId = String(req.body?.visitorId || 'watch-user');
     const query = String(req.body?.query || '').trim();
@@ -81,7 +82,7 @@ async function startServer() {
       `USER_QUESTION: ${query}`,
     ].join('\n');
 
-    const result = await queryGlmAi({
+    const result = await queryAi({
       systemPrompt,
       userPrompt,
       maxTokens: 160,
@@ -90,7 +91,7 @@ async function startServer() {
 
     res.json({
       reply: result.reply,
-      mode: 'glm',
+      mode: 'ai',
       model: result.modelUsed,
       provider: result.provider,
       latencyMs: result.latencyMs,
@@ -100,8 +101,16 @@ async function startServer() {
 
   // POST /api/board-ai — Dedicated Commander Aegis Board AI Assistance endpoint
   app.post('/api/board-ai', async (req, res) => {
-    const query = String(req.body?.query || 'Summarize all 10 crewmates health status and top actions.').trim();
-    const crewList = Array.isArray(req.body?.crew) ? req.body.crew : serverCrew;
+    const query = String(
+      req.body?.query ||
+        req.body?.question ||
+        'Summarize all 10 crewmates health status and top actions.'
+    ).trim();
+    const crewList = Array.isArray(req.body?.crew)
+      ? req.body.crew
+      : Array.isArray(req.body?.crewSnapshot)
+      ? req.body.crewSnapshot
+      : serverCrew;
     const activeEmergencies = Array.isArray(req.body?.emergencies) ? req.body.emergencies : [];
 
     const compactCrew = crewList.map((c: typeof serverCrew[number]) => ({
@@ -132,7 +141,7 @@ async function startServer() {
       `COMMANDER_REQUEST: ${query}`,
     ].join('\n');
 
-    const result = await queryGlmAi({
+    const result = await queryAi({
       systemPrompt,
       userPrompt,
       maxTokens: 220,

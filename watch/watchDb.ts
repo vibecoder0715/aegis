@@ -166,7 +166,7 @@ export interface AiChatMessage {
   role: 'user' | 'assistant';
   text: string;
   timestampUtc: string;
-  mode: 'gemini' | 'offline-db';
+  mode: 'ai' | 'gemini' | 'offline-db';
 }
 
 export interface PlanetSkinOption {
